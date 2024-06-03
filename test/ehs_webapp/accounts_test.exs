@@ -505,4 +505,62 @@ defmodule EhsWebapp.AccountsTest do
       refute inspect(%User{password: "123456"}) =~ "password: \"123456\""
     end
   end
+
+  describe "user_infos" do
+    alias EhsWebapp.Accounts.UserInfo
+
+    import EhsWebapp.AccountsFixtures
+
+    @invalid_attrs %{permissions: nil, f_name: nil, l_name: nil}
+
+    test "list_user_infos/0 returns all user_infos" do
+      user_info = user_info_fixture()
+      assert Accounts.list_user_infos() == [user_info]
+    end
+
+    test "get_user_info!/1 returns the user_info with given id" do
+      user_info = user_info_fixture()
+      assert Accounts.get_user_info!(user_info.id) == user_info
+    end
+
+    test "create_user_info/1 with valid data creates a user_info" do
+      valid_attrs = %{permissions: 42, f_name: "some f_name", l_name: "some l_name"}
+
+      assert {:ok, %UserInfo{} = user_info} = Accounts.create_user_info(valid_attrs)
+      assert user_info.permissions == 42
+      assert user_info.f_name == "some f_name"
+      assert user_info.l_name == "some l_name"
+    end
+
+    test "create_user_info/1 with invalid data returns error changeset" do
+      assert {:error, %Ecto.Changeset{}} = Accounts.create_user_info(@invalid_attrs)
+    end
+
+    test "update_user_info/2 with valid data updates the user_info" do
+      user_info = user_info_fixture()
+      update_attrs = %{permissions: 43, f_name: "some updated f_name", l_name: "some updated l_name"}
+
+      assert {:ok, %UserInfo{} = user_info} = Accounts.update_user_info(user_info, update_attrs)
+      assert user_info.permissions == 43
+      assert user_info.f_name == "some updated f_name"
+      assert user_info.l_name == "some updated l_name"
+    end
+
+    test "update_user_info/2 with invalid data returns error changeset" do
+      user_info = user_info_fixture()
+      assert {:error, %Ecto.Changeset{}} = Accounts.update_user_info(user_info, @invalid_attrs)
+      assert user_info == Accounts.get_user_info!(user_info.id)
+    end
+
+    test "delete_user_info/1 deletes the user_info" do
+      user_info = user_info_fixture()
+      assert {:ok, %UserInfo{}} = Accounts.delete_user_info(user_info)
+      assert_raise Ecto.NoResultsError, fn -> Accounts.get_user_info!(user_info.id) end
+    end
+
+    test "change_user_info/1 returns a user_info changeset" do
+      user_info = user_info_fixture()
+      assert %Ecto.Changeset{} = Accounts.change_user_info(user_info)
+    end
+  end
 end

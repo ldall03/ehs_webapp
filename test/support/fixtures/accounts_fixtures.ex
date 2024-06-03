@@ -28,4 +28,20 @@ defmodule EhsWebapp.AccountsFixtures do
     [_, token | _] = String.split(captured_email.text_body, "[TOKEN]")
     token
   end
+
+  @doc """
+  Generate a user_info.
+  """
+  def user_info_fixture(attrs \\ %{}) do
+    {:ok, user_info} =
+      attrs
+      |> Enum.into(%{
+        f_name: "some f_name",
+        l_name: "some l_name",
+        permissions: 42
+      })
+      |> EhsWebapp.Accounts.create_user_info()
+
+    user_info
+  end
 end
