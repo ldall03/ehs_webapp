@@ -1,32 +1,32 @@
-<header class="px-4 sm:px-6 lg:px-8">
-  <div class="flex items-center justify-between border-b border-zinc-100 py-3 text-sm">
-    <div class="flex items-center gap-4">
-      <a href="/">
-        <img src={~p"/images/logo.svg"} width="36" />
-      </a>
-      <p class="bg-brand/5 text-brand rounded-full px-2 font-medium leading-6">
-        v<%= Application.spec(:phoenix, :vsn) %>
-      </p>
-    </div>
-    <div class="flex items-center gap-4 font-semibold leading-6 text-zinc-900">
-      <a href="https://twitter.com/elixirphoenix" class="hover:text-zinc-700">
-        @elixirphoenix
-      </a>
-      <a href="https://github.com/phoenixframework/phoenix" class="hover:text-zinc-700">
-        GitHub
-      </a>
-      <a
-        href="https://hexdocs.pm/phoenix/overview.html"
-        class="rounded-lg bg-zinc-100 px-2 py-1 hover:bg-zinc-200/80"
-      >
-        Get Started <span aria-hidden="true">&rarr;</span>
-      </a>
-    </div>
+<header class="flex justify-between item-center px-6 py-3 bg-ccDark text-white">
+  <div class="flex relative">
+    <.link href={~p"/"}>
+      <img src="/images/logo.png" alt="Logo"/>
+    </.link>
+  </div>
+  <div class="flex relative">
+    <%= if @current_user do %>
+      <.link href={~p"/users/settings"} class="px-3 hover:underline">Signed in as<%= @current_user.email %></.link>
+      <.link href={~p"/users/log_out"} class="px-3 hover:undelrine">Sign Out</.link>
+    <% else %>
+      <.link href={~p"/users/register"} class="px-3 hover:underline">Create Account</.link>
+      <.link href={~p"/users/log_in"} class="px-3 hover:underline">Login</.link>
+    <% end %>
   </div>
 </header>
-<main class="px-4 py-20 sm:px-6 lg:px-8">
-  <div class="mx-auto max-w-2xl">
+
+<main>
     <.flash_group flash={@flash} />
     <%= @inner_content %>
-  </div>
 </main>
+
+<footer class="px-6 py-3 flex justify-center bg-ccDark text-white absolute bottom-0 w-full">
+  <div class="w-2/3 flex justify-between item-center">
+    <div>
+      Some Footer Here
+    </div>
+    <div>
+      CC here
+    </div>
+  </div>
+</footer>

@@ -14,7 +14,20 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        brand: "#FD4F00",
+        ccBlue: {
+          dark: "#004d99",
+          DEFAULT: "#0059b3",
+          light: "#0073e6"
+        },
+        ccGreen: "#00cc66",
+        ccRed: "#ff4d4d",
+        ccLight: "#f2f2f2",
+        ccGrey: {
+            light: "#8c8c8c",
+            DEFAULT: "#404040",
+            dark: "#262626"
+        },
+        ccDark: "#1f1f2d",
       }
     },
   },

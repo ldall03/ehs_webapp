@@ -78,6 +78,7 @@ defmodule EhsWebappWeb.Router do
 
     live_session :current_user,
       on_mount: [{EhsWebappWeb.UserAuth, :mount_current_user}] do
+      live "/equipment_search", EquipmentSearchLive
       live "/users/confirm/:token", UserConfirmationLive, :edit
       live "/users/confirm", UserConfirmationInstructionsLive, :new
     end
