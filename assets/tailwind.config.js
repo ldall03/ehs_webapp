@@ -23,11 +23,14 @@ module.exports = {
         ccRed: "#ff4d4d",
         ccLight: "#f2f2f2",
         ccGrey: {
-            light: "#8c8c8c",
-            DEFAULT: "#404040",
-            dark: "#262626"
+          light: "#8c8c8c",
+          DEFAULT: "#404040",
+          dark: "#262626"
         },
         ccDark: "#1f1f2d",
+      },
+      spacing: {
+        '128': '38rem'
       }
     },
   },
