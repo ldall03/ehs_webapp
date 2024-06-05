@@ -265,6 +265,7 @@ defmodule EhsWebappWeb.CoreComponents do
   attr :name, :any
   attr :label, :string, default: nil
   attr :value, :any
+  attr :class, :string, default: nil
 
   attr :type, :string,
     default: "text",
@@ -372,7 +373,8 @@ defmodule EhsWebappWeb.CoreComponents do
           "mt-2 block w-full rounded-lg text-ccDark focus:ring-0 sm:text-sm sm:leading-6",
           "phx-no-feedback:border-zinc-300 phx-no-feedback:focus:border-zinc-400",
           @errors == [] && "border-zinc-300 focus:border-zinc-400",
-          @errors != [] && "border-ccRed focus:border-ccRed"
+          @errors != [] && "border-ccRed focus:border-ccRed",
+          @class
         ]}
         {@rest}
       />

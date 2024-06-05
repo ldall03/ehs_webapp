@@ -14,6 +14,6 @@ defmodule EhsWebapp.Equipments.Subcategory do
   def changeset(subcategory, attrs) do
     subcategory
     |> cast(attrs, [:subcategory, :category_id])
-    |> validate_required([:subcategory, :subcategory_id])
+    |> validate_required([:subcategory, :category_id])
   end
 end

@@ -19,8 +19,16 @@ module.exports = {
           DEFAULT: "#0059b3",
           light: "#0073e6"
         },
-        ccGreen: "#00cc66",
-        ccRed: "#ff4d4d",
+        ccGreen: {
+          dark: "#008040",
+          DEFAULT: "#00cc66",
+          light: "#00e673"
+        },
+        ccRed: {
+          dark: "#cc0000",
+          DEFAULT: "#ff4d4d",
+          light: "#ff8080"
+        },
         ccLight: "#f2f2f2",
         ccGrey: {
           light: "#8c8c8c",
@@ -30,7 +38,8 @@ module.exports = {
         ccDark: "#1f1f2d",
       },
       spacing: {
-        '128': '38rem'
+        '128': '38rem',
+        '132': '42rem'
       }
     },
   },

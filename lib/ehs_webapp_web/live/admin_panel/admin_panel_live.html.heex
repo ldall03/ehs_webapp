@@ -1,0 +1,70 @@
+<div class="flex">
+  <div class="bg-ccBlue w-1/6">
+    <div class="bg-ccGrey text-white font-bold py-5 w-full text-center">Admin Panel</div>
+    <.button class="text-white hover:bg-ccBlue-light rounded-none w-full py-5">Clients</.button>
+    <.button class="text-white hover:bg-ccBlue-light rounded-none w-full py-5">Accounts</.button>
+    <.button class="text-white hover:bg-ccBlue-light rounded-none w-full py-5">Equipments</.button>
+    <.button class="text-white hover:bg-ccBlue-light rounded-none w-full py-5">Categories</.button>
+  </div>
+  <div class="bg-ccLight w-5/6">
+    <div class="font-bold p-8 text-xl">Categories</div>
+    <div class="flex">
+      <div class="bg-ccGrey-light w-1/5 h-132 relative">
+        <div class="h-128 overflow-scroll">
+          <%= for cat <- @categories do %>
+            <div 
+              class={"text-white p-3 text-lg #{if @selected_cat_id == cat.id do 'bg-ccGrey' end} hover:bg-ccGrey"}
+              phx-click="select_cat" 
+              phx-hook="SwitchCatForms"
+              phx-value-cat_id={cat.id}
+              id={"cat-#{cat.id}"}
+              phx-click-away={hide_form("#upd_cat-#{cat.id}", "#del_cat-#{cat.id}")}
+            >
+              <.form class="flex justify-between w-full" phx-submit="del_cat" id={"del_cat-#{cat.id}"}>
+                <%= cat.category %> 
+                <.input type="hidden" name="cat_id" value={cat.id} />
+                <.button type="submit" class="bg-ccRed hover:bg-ccRed-dark">Del</.button>
+              </.form>
+              <.form class="flex justify-between w-full" style="display: none" phx-submit="update_cat" id={"upd_cat-#{cat.id}"}>
+                <.input type="hidden" name="cat_id" value={cat.id} />
+                <.input type="text" name="cat" value={cat.category} />
+                <.button type="submit" class="bg-ccBlue-light hover:bg-ccBlue">Update</.button>
+              </.form>
+            </div>
+          <% end %>
+        </div>
+        <.form class="flex justify-between p-3 bg-ccGrey-light w-full absolute bottom-0" phx-submit="new_cat">
+          <.input type="text" name="category" value="" placeholder="Enter a new category..." />
+          <.button type="submit" class="bg-ccGreen hover:bg-ccGreen-dark">Add</.button>
+        </.form>
+      </div>
+      <div class="bg-ccGrey w-1/5 relative">
+        <div class="h-128 overflow-scroll">
+          <%= for cat <- @subcategories do %>
+            <div class="flex justify-between text-white p-3 text-lg hover:bg-ccGrey"
+              phx-hook="SwitchSubForms"
+              id={"sub-#{cat.id}"}
+              phx-click-away={hide_form("#upd_sub-#{cat.id}", "#del_sub-#{cat.id}")}
+            >
+              <.form class="flex justify-between w-full" phx-submit="del_sub" id={"del_sub-#{cat.id}"}>
+                <%= cat.subcategory %> 
+                <.input type="hidden" name="sub_id" value={cat.id} />
+                <.button type="submit" class="bg-ccRed hover:bg-ccRed-dark">Del</.button>
+              </.form>
+              <.form class="flex justify-between w-full" style="display: none" phx-submit="update_sub" id={"upd_sub-#{cat.id}"}>
+                <.input type="hidden" name="sub_id" value={cat.id} />
+                <.input type="text" name="sub" value={cat.subcategory} />
+                <.button type="submit" class="bg-ccBlue-light hover:bg-ccBlue">Update</.button>
+              </.form>
+            </div>
+          <% end %>
+        </div>
+        <.form class="flex justify-between p-3 w-full absolute bottom-0" phx-submit="new_sub">
+          <.input type="hidden" name="category_id" value={@selected_cat_id} />
+          <.input type="text" name="subcategory" value="" placeholder="Enter a new subcategory..."/>
+          <.button type="submit" class="bg-ccGreen hover:bg-ccGreen-dark">Add</.button>
+        </.form>
+      </div>
+    </div>
+  </div>
+</div>

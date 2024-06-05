@@ -100,7 +100,6 @@ defmodule EhsWebapp.Equipments do
   def list_subcategories(parent_id) do
     Repo.all(from sub in Subcategory,
       where: sub.category_id == ^parent_id,
-      select: {sub.id, sub.subcategory},
       order_by: sub.subcategory)
   end
 
@@ -135,6 +134,7 @@ defmodule EhsWebapp.Equipments do
 
   """
   def update_subcategory(%Subcategory{} = subcategory, attrs) do
+    IO.inspect(attrs)
     subcategory
     |> Subcategory.changeset(attrs)
     |> Repo.update()
