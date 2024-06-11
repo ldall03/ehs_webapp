@@ -7,6 +7,7 @@ defmodule EhsWebapp.ClientCompanies.ClientCompany do
     field :contact_email, :string
     field :contact_phone_number, :string
     field :date_joined, :date
+    has_many :equipment_ownerships, EhsWebapp.EquipmentOwnerships.EquipmentOwnership
 
     timestamps()
   end
@@ -15,6 +16,6 @@ defmodule EhsWebapp.ClientCompanies.ClientCompany do
   def changeset(client_company, attrs) do
     client_company
     |> cast(attrs, [:company_name, :contact_email, :contact_phone_number, :date_joined])
-    |> validate_required([:company_name, :contact_email, :contact_phone_number, :date_joined])
+    |> validate_required([:company_name])
   end
 end
