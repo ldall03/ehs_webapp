@@ -11,10 +11,10 @@ defmodule EhsWebappWeb.AdminPanelLive.OwnershipsComponent do
     {:ok, socket}
   end
 
-  def render(assigns) do # TODO[maybe]: refactor the select
+  def render(assigns) do
     ~H"""
     <div class="bg-ccLight w-5/6">
-      <div class="font-bold p-8 text-xl">Equipments</div>
+      <div class="font-bold p-8 text-xl">Ownerships</div>
       <.form for={@form} phx-submit="new_ownership" phx-target={@myself}>
         <.input type="text" label="Equipment ID*" name="equipment_id" placeholder="Equipment id" value="" autocomplete="off" field={@form[:equipment_id]}/>
         <.input type="text" label="Serial Number*" name="serial_number" placeholder="Serial Number" value="" autocomplete="off" field={@form[:serial_number]}/>

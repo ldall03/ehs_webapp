@@ -3,6 +3,7 @@ defmodule EhsWebapp.Equipments.Equipment do
   import Ecto.Changeset
 
   schema "equipments" do
+    field :part_number, :string
     field :equipment, :string
     field :description, :string
     field :brand, :string
@@ -17,5 +18,6 @@ defmodule EhsWebapp.Equipments.Equipment do
     equipment
     |> cast(attrs, [:equipment, :brand, :description, :subcategory_id])
     |> validate_required([:equipment, :brand, :subcategory_id])
+    |> unique_constraint(:part_number)
   end
 end

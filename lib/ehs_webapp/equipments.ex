@@ -6,7 +6,7 @@ defmodule EhsWebapp.Equipments do
   import Ecto.Query, warn: false
   alias EhsWebapp.Repo
 
-  alias EhsWebapp.Equipments.Category
+  alias EhsWebapp.Equipments.{Category, Subcategory}
 
   @doc """
   Returns the list of categories.
@@ -93,7 +93,7 @@ defmodule EhsWebapp.Equipments do
 
   ## Examples
 
-      iex> list_subcategories()
+      iex> list_subcategories(id)
       [%Subcategory{}, ...]
 
   """
@@ -262,51 +262,5 @@ defmodule EhsWebapp.Equipments do
   """
   def change_equipment(%Equipment{} = equipment, attrs \\ %{}) do
     Equipment.changeset(equipment, attrs)
-  end
-
-  def equipment_search(params, data \\ []) do
-    equipment_pattern = "%#{params.equipment}%"
-    brand_pattern = "%#{params.brand}%"
-    client_pattern = "%#{params.client}%"
-    department_pattern = "%#{params.department}%"
-    owner_pattern = "%#{params.current_owner}%"
-
-    query = Equipment
-      |> join(:inner, [eq], sub in Subcategory, on: eq.subcategory == sub.id)
-      |> join(:inner, [eq, sub], cat in Category, on: sub.category_id == cat.id)
-      |> join(:inner, [eq, sub, cat], o in EquipmentOwnership, on: eq.id == o.equipment_id)
-      |> join(:inner, [eq, sub, cat, o], com in ClientCompany, on: o.client_company_id == com.id)
-
-    query = if params["equipment"] != "", do: query
-      |> where([eq], like(eq.equipment, ^equipment_pattern)), else: query
-    query = if params["category"] != "", do: query
-      |> where([cat], cat.id, ^params["category"]), else: query
-    query = if params["subcategory"] != "", do: query
-      |> where([sub], sub.id, ^params["subcategory"]), else: query
-    query = if params["subcategory"] != "", do: query
-      |> where([eq], like(eq.brand, ^brand_pattern)), else: query
-    query = if params["part_no"] != "", do: query
-      |> where([eq], eq.part_no, ^params["part_no"]), else: query
-    query = if params["batch_no"] != "", do: query
-      |> where([o], o.batch_no, ^params["batch_no"]), else: query
-    query = if params["serial_no"] != "", do: query
-      |> where([o], o.serial_no, ^params["serial_no"]), else: query
-    query = if params["client"] != "", do: query
-      |> where([com], like(com.company_name, ^client_pattern)), else: query
-    query = if params["department"] != "", do: query
-      |> where([o], like(o.department, ^department_pattern)), else: query
-    query = if params["current_owner"] != "", do: query
-      |> where([o], like(o.current_owner, ^owner_pattern)), else: query
-    query = if params["owner_id"] != "", do: query
-      |> where([o], o.owner_id, ^params["owner_id"]), else: query
-
-    # add existing data to query to avoid duplicates
-    query = Enum.reduce(data, query, fn i, acc -> acc |> or_where([eq], eq.id = Enum.at(i, 0)) end)
-
-    query = query
-      |> select([eq, sub, cat, o, com], [e.id, e.equipment, e.serial_no, com.company_name])
-      |> order_by([eq], eq.equipment)
-
-     Repo.all(query)
   end
 end
