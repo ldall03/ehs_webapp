@@ -23,20 +23,30 @@ defmodule EhsWebappWeb.AdminPanelLive do
       <div class="bg-ccBlue w-1/6">
         <div class="bg-ccGrey text-white font-bold py-5 w-full text-center">Admin Panel</div>
         <.link 
-          class="font-bold text-center block text-white hover:bg-ccBlue-light w-full py-5"
-          href={~p"/admin_panel/clients"}>Clients</.link>
+          class={["font-bold text-center block text-white hover:bg-ccBlue-light w-full py-5", 
+          @view == "clients" && "bg-ccBlue-light"]}
+          href={~p"/admin_panel/clients"}>Clients
+        </.link>
         <.link 
-          class="font-bold text-center block text-white hover:bg-ccBlue-light rounded-none w-full py-5"
-          href={~p"/admin_panel/clients"}>Accounts</.link>
+          class={["font-bold text-center block text-white hover:bg-ccBlue-light w-full py-5", 
+          @view == "accounts" && "bg-ccBlue-light"]}
+          href={~p"/admin_panel/clients"}>Accounts
+        </.link>
         <.link 
-          class="font-bold text-center block text-white hover:bg-ccBlue-light rounded-none w-full py-5"
-          href={~p"/admin_panel/equipments"}>Equipments</.link>
+          class={["font-bold text-center block text-white hover:bg-ccBlue-light w-full py-5", 
+          @view == "equipments" && "bg-ccBlue-light"]}
+          href={~p"/admin_panel/equipments"}>Equipments
+        </.link>
         <.link 
-          class="font-bold text-center block text-white hover:bg-ccBlue-light rounded-none w-full py-5"
-          href={~p"/admin_panel/categories"}>Categories</.link>
+          class={["font-bold text-center block text-white hover:bg-ccBlue-light w-full py-5", 
+          @view == "categories" && "bg-ccBlue-light"]}
+          href={~p"/admin_panel/categories"}>Categories
+        </.link>
         <.link 
-          class="font-bold text-center block text-white hover:bg-ccBlue-light rounded-none w-full py-5"
-          href={~p"/admin_panel/ownerships"}>Ownerships</.link>
+          class={["font-bold text-center block text-white hover:bg-ccBlue-light w-full py-5", 
+          @view == "ownerships" && "bg-ccBlue-light"]}
+          href={~p"/admin_panel/ownerships"}>Ownerships
+        </.link>
       </div>
       <%= case @view do %>
         <% "clients" -> %>

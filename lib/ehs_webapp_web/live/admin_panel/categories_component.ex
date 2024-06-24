@@ -42,7 +42,12 @@ defmodule EhsWebappWeb.AdminPanelLive.CategoriesComponent do
                 <.form class="flex justify-between w-full" phx-submit="del_cat" phx-target={@myself} id={"del_cat-#{cat.id}"}>
                   <%= cat.category %> 
                   <.input type="hidden" name="cat_id" value={cat.id} />
-                  <.button type="submit" class="bg-ccRed hover:bg-ccRed-dark">Del</.button>
+                  <.button 
+                    type="submit" 
+                    data-confirm="This action will delete every equipment and subcategory under this category." 
+                    class="bg-ccRed hover:bg-ccRed-dark">
+                    Del
+                  </.button>
                 </.form>
                 <.form class="flex justify-between w-full" style="display: none" phx-submit="update_cat" phx-target={@myself} id={"upd_cat-#{cat.id}"}>
                   <.input type="hidden" name="cat_id" value={cat.id} />
@@ -69,7 +74,12 @@ defmodule EhsWebappWeb.AdminPanelLive.CategoriesComponent do
                 <.form class="flex justify-between w-full" phx-submit="del_sub" phx-target={@myself} id={"del_sub-#{cat.id}"}>
                   <%= cat.subcategory %> 
                   <.input type="hidden" name="sub_id" value={cat.id} />
-                  <.button type="submit" class="bg-ccRed hover:bg-ccRed-dark">Del</.button>
+                  <.button 
+                    type="submit" 
+                    data-confirm="This action will delete every equipment and subcategory under this category." 
+                    class="bg-ccRed hover:bg-ccRed-dark">
+                    Del
+                  </.button>
                 </.form>
                 <.form class="flex justify-between w-full" style="display: none" phx-submit="update_sub" phx-target={@myself} id={"upd_sub-#{cat.id}"}>
                   <.input type="hidden" name="sub_id" value={cat.id} />

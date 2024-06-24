@@ -56,47 +56,58 @@
   </div>
   <div class="flex w-full">
     <div class="flex justify-between border border-ccDark w-3/5 p-8">
-      <div class="w-1/2 flex">
+      <div class="flex w-5/12">
         <div class="w-1/2">
           <p class="text-lg font-bold m-8 h-8">Equipment:</p>
           <p class="text-lg font-bold m-8 h-8">Brand:</p>
           <p class="text-lg font-bold m-8 h-8">Part No.:</p>
+          <p class="text-lg font-bold m-8 h-8">Client:</p>
           <p class="text-lg font-bold m-8 h-8">Batch No.:</p>
           <p class="text-lg font-bold m-8 h-8">Serial No.:</p>
           <p class="text-lg font-bold m-8 h-8">MFGDT:</p>
-          <p class="text-lg font-bold m-8 h-8">Client:</p>
-          <p class="text-lg font-bold m-8 h-8">Department:</p>
+          <p class="text-lg font-bold m-8 h-8">Service Date:</p>
         </div>
         <div class="w-1/2">
-          <p class="text-lg font-normal my-8 h-8"><%= @selection.equipment %></p>
-          <p class="text-lg font-normal my-8 h-8"><%= @selection.brand %></p>
-          <p class="text-lg font-normal my-8 h-8"><%= @selection.part_number %></p>
-          <p class="text-lg font-normal my-8 h-8"><%= @selection.batch_number %></p>
-          <p class="text-lg font-normal my-8 h-8"><%= @selection.serial_number %></p>
-          <p class="text-lg font-normal my-8 h-8"><%= @selection.mfgdt %></p>
-          <p class="text-lg font-normal my-8 h-8"><%= @selection.client %></p>
-          <p class="text-lg font-normal my-8 h-8"><%= @selection.department %></p>
+          <p class="text-lg font-normal my-8 mr-8 h-8"><%= @selection.equipment %></p>
+          <p class="text-lg font-normal my-8 mr-8 h-8"><%= @selection.brand %></p>
+          <p class="text-lg font-normal my-8 mr-8 h-8"><%= @selection.part_number %></p>
+          <p class="text-lg font-normal my-8 mr-8 h-8"><%= @selection.client %></p>
+          <p class="text-lg font-normal my-8 mr-8 h-8"><%= @selection.batch_number %></p>
+          <p class="text-lg font-normal my-8 mr-8 h-8"><%= @selection.serial_number %></p>
+          <p class="text-lg font-normal my-8 mr-8 h-8"><%= @selection.mfgdt %></p>
+          <p class="text-lg font-normal my-8 mr-8 h-8"><%= @selection.service_date %></p>
         </div>
       </div>
-      <div class="w-1/2 flex">
+      <div class="flex w-5/12">
         <div class="w-1/2">
-          <p class="text-lg font-bold m-8 h-8">Equipment Owner:</p>
-          <p class="text-lg font-bold m-8 h-8">Owner ID:</p>
-          <p class="text-lg font-bold m-8 h-8">Service Date:</p>
-          <p class="text-lg font-bold m-8 h-8">Last Inspection Date:</p>
-          <p class="text-lg font-bold m-8 h-8">Next Inspection Date:</p>
-          <p class="text-lg font-bold m-8 h-8">Inspection Interval:</p>
-          <p class="text-lg font-bold m-8 h-8">Inactive Date:</p>
+          <p class="text-lg font-bold my-8 h-8">Inspection Interval:</p>
+          <p class="text-lg font-bold my-8 h-8">Last Inspection Date:</p>
+          <p class="text-lg font-bold my-8 h-8">Next Inspection Date:</p>
+          <p class="text-lg font-bold my-8 h-8">Inactive Date:</p>
+          <p class="text-lg font-bold my-8 h-8">Department:</p>
+          <p class="text-lg font-bold my-8 h-8">Equipment Owner:</p>
+          <p class="text-lg font-bold my-8 h-8">Owner ID:</p>
         </div>
         <div class="w-1/2">
-          <p class="text-lg font-normal my-8 h-8"><%= @selection.owner %></p>
-          <p class="text-lg font-normal my-8 h-8"><%= @selection.owner_id %></p>
-          <p class="text-lg font-normal my-8 h-8"><%= @selection.service_date %></p>
+          <p class="text-lg font-normal my-8 h-8"><%= @selection.inspection_interval %></p>
           <p class="text-lg font-normal my-8 h-8"><%= @selection.last_inspection_date %></p>
           <p class="text-lg font-normal my-8 h-8"><%= @selection.next_inspection_date %></p>
-          <p class="text-lg font-normal my-8 h-8"><%= @selection.inspection_interval %></p>
           <p class="text-lg font-normal my-8 h-8"><%= @selection.inactive_date %></p>
+          <p class="text-lg font-normal my-8 h-8"><%= @selection.department %></p>
+          <p class="text-lg font-normal my-8 h-8"><%= @selection.owner %></p>
+          <p class="text-lg font-normal my-8 h-8"><%= @selection.owner_id %></p>
         </div>
+      </div>
+      <div class="pt-4 w-2/12">
+        <.select_button 
+          id="info_form_select_btn" 
+          disabled={@selection.equipment == ""} 
+          click_action="select_btn_click" 
+          class="w-36 float-right" 
+          phx-hook="EnableOnCreateSelectButton"
+          data-equipment={@selection.equipment}
+          options={[{"Update", "update"}, {"Create", "create"}, {"Delete", "delete"}]}
+        />
       </div>
     </div>
   </div>

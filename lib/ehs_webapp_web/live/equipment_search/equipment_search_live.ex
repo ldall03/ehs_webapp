@@ -7,8 +7,8 @@ defmodule EhsWebappWeb.EquipmentSearchLive do
     {:ok, assign(socket, 
       data: [],
       selection: EquipmentOwnerships.equipment_search_by(nil),
-      form: to_form(%{}))
-    }
+      form: to_form(%{})
+    )}
   end
 
   def handle_event("search", params, socket) do
@@ -34,6 +34,11 @@ defmodule EhsWebappWeb.EquipmentSearchLive do
     socket = assign(socket,
       selection: selection
     )
+    {:noreply, socket}
+  end
+
+  def handle_event("select_btn_click", params, socket) do
+    IO.puts(params["value"])
     {:noreply, socket}
   end
 end
