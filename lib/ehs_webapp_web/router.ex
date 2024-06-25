@@ -52,7 +52,6 @@ defmodule EhsWebappWeb.Router do
 
     live_session :redirect_if_user_is_authenticated,
       on_mount: [{EhsWebappWeb.UserAuth, :redirect_if_user_is_authenticated}] do
-      live "/users/register", UserRegistrationLive, :new
       live "/users/log_in", UserLoginLive, :new
       live "/users/reset_password", UserForgotPasswordLive, :new
       live "/users/reset_password/:token", UserResetPasswordLive, :edit
@@ -73,7 +72,7 @@ defmodule EhsWebappWeb.Router do
   end
 
   scope "/", EhsWebappWeb do
-    pipe_through [:browser, :require_authenticated_admin]
+    pipe_through [:browser, :require_authenticated_user, :require_authenticated_admin]
 
     live_session :require_authenticated_admin,
       on_mount: [{EhsWebappWeb.UserAuth, :ensure_admin}] do

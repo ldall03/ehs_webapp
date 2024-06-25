@@ -1,0 +1,7 @@
+- rearrange search page for admin/non-admin users
+- migrate ownership admin section to the search page
+- ensure only admins can execute certain tasks
+- select/input component
+- touch up admin panel
+
+- file upload stuff

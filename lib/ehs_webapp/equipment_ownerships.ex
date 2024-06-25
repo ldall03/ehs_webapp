@@ -113,7 +113,19 @@ defmodule EhsWebapp.EquipmentOwnerships do
     "part_number"       => "",
     "batch_number"      => "",
     "serial_number"     => "",
-    "company_name"      => "",
+    "company_name"      => ""
+    }, user, data) do
+    data
+  end
+
+  def equipment_search(%{
+    "equipment"         => "",
+    "category_id"       => "-",
+    "subcategory_id"    => "-",
+    "brand"             => "",
+    "part_number"       => "",
+    "batch_number"      => "",
+    "serial_number"     => "",
     "department"        => "",
     "current_owner"     => "",
     "current_owner_id"  => ""
@@ -148,13 +160,13 @@ defmodule EhsWebapp.EquipmentOwnerships do
       |> where([eq, sub, cat, o], o.batch_number == ^params["batch_number"]), else: query
     query = if params["serial_number"] != "", do: query
       |> where([eq, sub, cat, o], o.serial_number == ^params["serial_number"]), else: query
-    query = if params["company_name"] != "", do: query
+    query = if cmp_or_nil(params["company_name"]), do: query
       |> where([eq, sub, cat, o, com], like(com.company_name, ^client_pattern)), else: query
-    query = if params["department"] != "", do: query
+    query = if cmp_or_nil(params["department"]), do: query
       |> where([eq, sub, cat, o], like(o.department, ^department_pattern)), else: query
-    query = if params["current_owner"] != "", do: query
+    query = if cmp_or_nil(params["current_owner"]), do: query
       |> where([eq, sub, cat, o], like(o.current_owner, ^owner_pattern)), else: query
-    query = if params["current_owner_id"] != "", do: query
+    query = if cmp_or_nil(params["current_owner_id"]), do: query
       |> where([eq, sub, cat, o], o.owner_id == ^params["current_owner_id"]), else: query
 
     query = if !user.superuser, do: query
@@ -168,7 +180,8 @@ defmodule EhsWebapp.EquipmentOwnerships do
         [o.id,
         eq.equipment, 
         o.serial_number, 
-        com.company_name])
+        com.company_name,
+        o.current_owner])
       |> order_by([eq], eq.equipment)
 
     Repo.all(query)
@@ -177,7 +190,8 @@ defmodule EhsWebapp.EquipmentOwnerships do
           :id                   => Enum.at(item, 0),
           :equipment            => Enum.at(item, 1),
           :serial_number        => Enum.at(item, 2), 
-          :client               => Enum.at(item, 3)
+          :client               => Enum.at(item, 3),
+          :current_owner        => Enum.at(item, 4)
         } end)   
   end
 
@@ -245,4 +259,8 @@ defmodule EhsWebapp.EquipmentOwnerships do
       :batch_number         => Enum.at(res, 15)
     } 
   end
+
+  defp cmp_or_nil(nil), do: false
+
+  defp cmp_or_nil(val), do: !(val == "")
 end

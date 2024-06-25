@@ -9,7 +9,6 @@
       <.link href={~p"/users/settings"} class="px-3 hover:underline">Signed in as <%= @current_user.email %></.link>
       <.link href={~p"/users/log_out"} method="delete" class="px-3 hover:undelrine">Sign Out</.link>
     <% else %>
-      <.link href={~p"/users/register"} class="px-3 hover:underline">Create Account</.link>
       <.link href={~p"/users/log_in"} class="px-3 hover:underline">Login</.link>
     <% end %>
   </div>
