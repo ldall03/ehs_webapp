@@ -12,7 +12,7 @@ defmodule EhsWebappWeb.EquipmentSearchLive do
   end
 
   def handle_event("search", params, socket) do
-    data = EquipmentOwnerships.equipment_search(params, socket.assigns.data)
+    data = EquipmentOwnerships.equipment_search(params, socket.assigns.current_user, socket.assigns.data)
     socket = assign(socket,
       data: data
     )

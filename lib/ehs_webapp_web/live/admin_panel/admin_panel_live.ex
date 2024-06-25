@@ -12,8 +12,6 @@ defmodule EhsWebappWeb.AdminPanelLive do
     socket = assign(socket,
       view: view
     )
-    IO.inspect(params)
-    IO.puts(view)
     {:ok, socket}
   end
 
@@ -30,7 +28,7 @@ defmodule EhsWebappWeb.AdminPanelLive do
         <.link 
           class={["font-bold text-center block text-white hover:bg-ccBlue-light w-full py-5", 
           @view == "accounts" && "bg-ccBlue-light"]}
-          href={~p"/admin_panel/clients"}>Accounts
+          href={~p"/admin_panel/accounts"}>Accounts
         </.link>
         <.link 
           class={["font-bold text-center block text-white hover:bg-ccBlue-light w-full py-5", 
@@ -52,7 +50,7 @@ defmodule EhsWebappWeb.AdminPanelLive do
         <% "clients" -> %>
           <.live_component module={EhsWebappWeb.AdminPanelLive.ClientsComponent} id="clients_components" />
         <% "accounts" -> %>
-          <.live_component module={EhsWebappWeb.AdminPanelLive.ClientsComponent} id="accounts_components" />
+          <.live_component module={EhsWebappWeb.AdminPanelLive.AccountsComponent} id="accounts_components" />
         <% "equipments" -> %>
           <.live_component module={EhsWebappWeb.AdminPanelLive.EquipmentsComponent} id="equipments_components" />
         <% "categories" -> %>

@@ -66,8 +66,19 @@ defmodule EhsWebappWeb.Router do
 
     live_session :require_authenticated_user,
       on_mount: [{EhsWebappWeb.UserAuth, :ensure_authenticated}] do
+      live "/equipment_search", EquipmentSearchLive
       live "/users/settings", UserSettingsLive, :edit
       live "/users/settings/confirm_email/:token", UserSettingsLive, :confirm_email
+    end
+  end
+
+  scope "/", EhsWebappWeb do
+    pipe_through [:browser, :require_authenticated_admin]
+
+    live_session :require_authenticated_admin,
+      on_mount: [{EhsWebappWeb.UserAuth, :ensure_admin}] do
+      live "/admin_panel/", AdminPanelLive
+      live "/admin_panel/:view", AdminPanelLive
     end
   end
 
@@ -78,9 +89,6 @@ defmodule EhsWebappWeb.Router do
 
     live_session :current_user,
       on_mount: [{EhsWebappWeb.UserAuth, :mount_current_user}] do
-      live "/equipment_search", EquipmentSearchLive
-      live "/admin_panel/", AdminPanelLive
-      live "/admin_panel/:view", AdminPanelLive
       live "/users/confirm/:token", UserConfirmationLive, :edit
       live "/users/confirm", UserConfirmationInstructionsLive, :new
     end

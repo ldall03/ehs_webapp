@@ -3,3 +3,30 @@
 @import "tailwindcss/utilities";
 
 /* This file is for your main application CSS */
+
+.select-btn-select {
+    @apply bg-ccBlue text-white appearance-none;
+    margin: 0 0 0 4px;
+    height: 46px;
+    width: 100%;
+    float: right;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+.select-btn-btn {
+    @apply border-r border-ccDark;
+    height: 46px;
+    border-radius: 10px 0 0 10px;
+    position: absolute;
+    width: calc(100% - 34px);
+}
+
+.select-btn-btn:disabled {
+    @apply text-ccGrey-light hover:bg-ccBlue active:text-ccGrey-light;
+}
+
+#info_form_btn:disabled {
+    @apply text-ccGrey-light hover:bg-ccBlue active:text-ccGrey-light;
+}

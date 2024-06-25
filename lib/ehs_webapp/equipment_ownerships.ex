@@ -104,7 +104,7 @@ defmodule EhsWebapp.EquipmentOwnerships do
     EquipmentOwnership.changeset(equipment_ownership, attrs)
   end
 
-  def equipment_search(params, data \\ [])
+  def equipment_search(params, user, data \\ [])
   def equipment_search(%{
     "equipment"         => "",
     "category_id"       => "-",
@@ -117,11 +117,11 @@ defmodule EhsWebapp.EquipmentOwnerships do
     "department"        => "",
     "current_owner"     => "",
     "current_owner_id"  => ""
-    }, data) do
+    }, user, data) do
     data
   end
 
-  def equipment_search(params, data) do
+  def equipment_search(params, user, data) do
     equipment_pattern = "%#{params["equipment"]}%"
     brand_pattern = "%#{params["brand"]}%"
     client_pattern = "%#{params["company_name"]}%"
@@ -156,6 +156,9 @@ defmodule EhsWebapp.EquipmentOwnerships do
       |> where([eq, sub, cat, o], like(o.current_owner, ^owner_pattern)), else: query
     query = if params["current_owner_id"] != "", do: query
       |> where([eq, sub, cat, o], o.owner_id == ^params["current_owner_id"]), else: query
+
+    query = if !user.superuser, do: query
+      |> where([eq, sub, cat, o], o.client_company_id == ^user.client_company_id), else: query
 
     # add existing data to query to avoid duplicates
     query = Enum.reduce(data, query, fn i, acc -> acc |> or_where([eq, sub, cat, o], o.id == ^i.id) end)
@@ -201,12 +204,10 @@ defmodule EhsWebapp.EquipmentOwnerships do
   
   def equipment_search_by(id) do
     query = Equipment
-      |> join(:inner, [eq], sub in Subcategory, on: eq.subcategory_id == sub.id)
-      |> join(:inner, [eq, sub], cat in Category, on: sub.category_id == cat.id)
-      |> join(:inner, [eq, sub, cat], o in EquipmentOwnership, on: eq.id == o.equipment_id)
-      |> join(:inner, [eq, sub, cat, o], com in ClientCompany, on: o.client_company_id == com.id)
-      |> where([eq, sub, cat, o], o.id == ^id)
-      |> select([eq, sub, cat, o, com], 
+      |> join(:inner, [eq], o in EquipmentOwnership, on: eq.id == o.equipment_id)
+      |> join(:inner, [eq, o], com in ClientCompany, on: o.client_company_id == com.id)
+      |> where([eq, o], o.id == ^id)
+      |> select([eq, o, com], 
         [o.id,
         eq.equipment, 
         eq.brand,

@@ -8,6 +8,7 @@ defmodule EhsWebapp.ClientCompanies.ClientCompany do
     field :contact_phone_number, :string
     field :date_joined, :date
     has_many :equipment_ownerships, EhsWebapp.EquipmentOwnerships.EquipmentOwnership
+    has_many :users, EhsWebapp.Accounts.User
 
     timestamps()
   end

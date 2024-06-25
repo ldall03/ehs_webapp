@@ -54,6 +54,40 @@ Hooks.SwitchSubForms = {
     }
 }
 
+Hooks.EnableOnCreateSelectButton = {
+    mounted() {
+        console.log("DOING SHIT")
+        let select = document.getElementById("info_form_select_btn-s");
+        let btn_id = "info_form_select_btn-sb";
+        select.addEventListener("change", () => {
+            document.getElementById(btn_id).disabled = (
+                select.options[select.selectedIndex].value != "create"
+                && this.el.dataset.equipment == ""
+            );
+        })
+    }
+}
+
+function changeBtnText(id) {
+    let btn_id = id + "b";
+    let select = document.getElementById(id);
+    document.getElementById(btn_id).innerText = select.options[select.selectedIndex].text;
+    document.getElementById(btn_id).value = select.value;
+}
+
+Hooks.SelectButtonOnChange = {
+    mounted() {
+        this.el.addEventListener("change", () => {
+            changeBtnText(this.el.id);
+        })
+
+        changeBtnText(this.el.id);
+    },
+    updated() {
+        changeBtnText(this.el.id);
+    }
+}
+
 let liveSocket = new LiveSocket("/live", Socket, {params: {_csrf_token: csrfToken}, hooks: Hooks})
 
 // Show progress bar on live navigation and form submits

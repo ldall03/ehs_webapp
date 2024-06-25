@@ -327,7 +327,7 @@ defmodule EhsWebappWeb.CoreComponents do
       <select
         id={@id}
         name={@name}
-        class="mt-2 block w-full rounded-md border border-gray-300 bg-white shadow-sm focus:border-zinc-400 focus:ring-0 sm:text-sm"
+        class={["mt-2 block w-full rounded-md border border-gray-300 bg-white shadow-sm focus:border-zinc-400 focus:ring-0 sm:text-sm", @class]}
         multiple={@multiple}
         {@rest}
       >
@@ -590,7 +590,29 @@ defmodule EhsWebappWeb.CoreComponents do
     """
   end
 
+  ## Custom Components
+
+  attr :options, :list, required: true, doc: "options given to the select"
+  attr :id, :string, required: true, doc: "id used to set the text of the button on change"
+  attr :click_action, :string, default: nil, doc: "phx-click action to be executed on click"
+  attr :disabled, :boolean, default: false, doc: "whether or not the button will be disabled"
+  attr :class, :string, default: nil
+  attr :rest, :global
+
+  def select_button(assigns) do
+    ~H"""
+    <div id={@id} class={["relative", @class]} {@rest} >
+      <.button id={"#{@id}-sb"} phx-click={@click_action} name="select_button" value="" class="select-btn-btn" disabled={@disabled}></.button>
+      <.input id={"#{@id}-s"} name="select_value" phx-hook="SelectButtonOnChange" type="select" value="" options={@options} class="select-btn-select" />
+    </div>
+    """
+  end
+
   ## JS Commands
+
+  def set_select_button_text(js \\ %JS{}, selector) do
+    
+  end
 
   def show(js \\ %JS{}, selector) do
     JS.show(js,

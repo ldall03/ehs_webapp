@@ -20,18 +20,23 @@ defmodule EhsWebapp.Accounts.UserNotifier do
   @doc """
   Deliver instructions to confirm account.
   """
-  def deliver_confirmation_instructions(user, url) do
+  def deliver_confirmation_instructions(user, stock_password, url) do
     deliver(user.email, "Confirmation instructions", """
 
     ==============================
 
-    Hi #{user.email},
+    Hi #{user.f_name},
 
-    You can confirm your account by visiting the URL below:
+    your account for <proj_ehs> has been created, you may find your credentials below:
+      - username: #{user.email}
+      - password: #{stock_password}
+
+    We strongly recommend you change your default password to a more secure password of your choosing,
+    to get started confirm your account with the link below:
 
     #{url}
 
-    If you didn't create an account with us, please ignore this.
+    If you did not wish for an account with us, please ignore this.
 
     ==============================
     """)

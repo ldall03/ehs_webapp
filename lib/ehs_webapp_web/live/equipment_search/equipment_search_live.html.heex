@@ -99,15 +99,27 @@
         </div>
       </div>
       <div class="pt-4 w-2/12">
-        <.select_button 
-          id="info_form_select_btn" 
-          disabled={@selection.equipment == ""} 
-          click_action="select_btn_click" 
-          class="w-36 float-right" 
-          phx-hook="EnableOnCreateSelectButton"
-          data-equipment={@selection.equipment}
-          options={[{"Update", "update"}, {"Create", "create"}, {"Delete", "delete"}]}
-        />
+        <%= if @current_user.superuser do %>
+          <.select_button 
+            id="info_form_select_btn" 
+            disabled={@selection.equipment == ""} 
+            click_action="select_btn_click" 
+            class="w-36 float-right" 
+            phx-hook="EnableOnCreateSelectButton"
+            data-equipment={@selection.equipment}
+            options={[{"Update", "update"}, {"Create", "create"}, {"Delete", "delete"}]}
+          />
+        <% else %>
+          <.button 
+            id="info_form_btn" 
+            disabled={@selection.equipment == ""} 
+            class="w-36 float-right" 
+            data-equipment={@selection.equipment} 
+            phx-click="select_btn_click" 
+            value="update">
+            Update
+          </.button>
+        <% end %>
       </div>
     </div>
   </div>

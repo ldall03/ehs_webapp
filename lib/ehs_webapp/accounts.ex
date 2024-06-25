@@ -256,14 +256,14 @@ defmodule EhsWebapp.Accounts do
       {:error, :already_confirmed}
 
   """
-  def deliver_user_confirmation_instructions(%User{} = user, confirmation_url_fun)
+  def deliver_user_confirmation_instructions(%User{} = user, stock_password, confirmation_url_fun)
       when is_function(confirmation_url_fun, 1) do
     if user.confirmed_at do
       {:error, :already_confirmed}
     else
       {encoded_token, user_token} = UserToken.build_email_token(user, "confirm")
       Repo.insert!(user_token)
-      UserNotifier.deliver_confirmation_instructions(user, confirmation_url_fun.(encoded_token))
+      UserNotifier.deliver_confirmation_instructions(user, stock_password, confirmation_url_fun.(encoded_token))
     end
   end
 
@@ -349,101 +349,5 @@ defmodule EhsWebapp.Accounts do
       {:ok, %{user: user}} -> {:ok, user}
       {:error, :user, changeset, _} -> {:error, changeset}
     end
-  end
-
-  alias EhsWebapp.Accounts.UserInfo
-
-  @doc """
-  Returns the list of user_infos.
-
-  ## Examples
-
-      iex> list_user_infos()
-      [%UserInfo{}, ...]
-
-  """
-  def list_user_infos do
-    Repo.all(UserInfo)
-  end
-
-  @doc """
-  Gets a single user_info.
-
-  Raises `Ecto.NoResultsError` if the User info does not exist.
-
-  ## Examples
-
-      iex> get_user_info!(123)
-      %UserInfo{}
-
-      iex> get_user_info!(456)
-      ** (Ecto.NoResultsError)
-
-  """
-  def get_user_info!(id), do: Repo.get!(UserInfo, id)
-
-  @doc """
-  Creates a user_info.
-
-  ## Examples
-
-      iex> create_user_info(%{field: value})
-      {:ok, %UserInfo{}}
-
-      iex> create_user_info(%{field: bad_value})
-      {:error, %Ecto.Changeset{}}
-
-  """
-  def create_user_info(attrs \\ %{}) do
-    %UserInfo{}
-    |> UserInfo.changeset(attrs)
-    |> Repo.insert()
-  end
-
-  @doc """
-  Updates a user_info.
-
-  ## Examples
-
-      iex> update_user_info(user_info, %{field: new_value})
-      {:ok, %UserInfo{}}
-
-      iex> update_user_info(user_info, %{field: bad_value})
-      {:error, %Ecto.Changeset{}}
-
-  """
-  def update_user_info(%UserInfo{} = user_info, attrs) do
-    user_info
-    |> UserInfo.changeset(attrs)
-    |> Repo.update()
-  end
-
-  @doc """
-  Deletes a user_info.
-
-  ## Examples
-
-      iex> delete_user_info(user_info)
-      {:ok, %UserInfo{}}
-
-      iex> delete_user_info(user_info)
-      {:error, %Ecto.Changeset{}}
-
-  """
-  def delete_user_info(%UserInfo{} = user_info) do
-    Repo.delete(user_info)
-  end
-
-  @doc """
-  Returns an `%Ecto.Changeset{}` for tracking user_info changes.
-
-  ## Examples
-
-      iex> change_user_info(user_info)
-      %Ecto.Changeset{data: %UserInfo{}}
-
-  """
-  def change_user_info(%UserInfo{} = user_info, attrs \\ %{}) do
-    UserInfo.changeset(user_info, attrs)
   end
 end
