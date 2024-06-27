@@ -20,7 +20,7 @@ module.exports = {
           light: "#0073e6"
         },
         ccGreen: {
-          dark: "#008040",
+          dark: "#00b359",
           DEFAULT: "#00cc66",
           light: "#00e673"
         },
@@ -28,6 +28,10 @@ module.exports = {
           dark: "#cc0000",
           DEFAULT: "#ff4d4d",
           light: "#ff8080"
+        },
+        ccOrange: {
+          dark: "#ff661a",
+          DEFAULT: "#ff7733"
         },
         ccLight: "#f2f2f2",
         ccGrey: {

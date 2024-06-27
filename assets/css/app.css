@@ -7,7 +7,7 @@
 .select-btn-select {
     @apply bg-ccBlue text-white appearance-none;
     margin: 0 0 0 4px;
-    height: 46px;
+    height: 40px;
     width: 100%;
     float: right;
     border: none;
@@ -17,7 +17,7 @@
 
 .select-btn-btn {
     @apply border-r border-ccDark;
-    height: 46px;
+    height: 40px;
     border-radius: 10px 0 0 10px;
     position: absolute;
     width: calc(100% - 34px);
@@ -27,6 +27,6 @@
     @apply text-ccGrey-light hover:bg-ccBlue active:text-ccGrey-light;
 }
 
-#info_form_btn:disabled {
+#info-form-btn:disabled {
     @apply text-ccGrey-light hover:bg-ccBlue active:text-ccGrey-light;
 }

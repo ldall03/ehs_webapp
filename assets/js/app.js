@@ -55,16 +55,13 @@ Hooks.SwitchSubForms = {
 }
 
 Hooks.EnableOnCreateSelectButton = {
-    mounted() {
-        console.log("DOING SHIT")
-        let select = document.getElementById("info_form_select_btn-s");
-        let btn_id = "info_form_select_btn-sb";
-        select.addEventListener("change", () => {
-            document.getElementById(btn_id).disabled = (
-                select.options[select.selectedIndex].value != "create"
-                && this.el.dataset.equipment == ""
-            );
-        })
+    updated() {
+        let select = document.getElementById("info-form-select-btn-s");
+        let btn_id = "info-form-select-btn-sb";
+        document.getElementById(btn_id).disabled = (
+            select.options[select.selectedIndex].value != "create"
+            && this.el.dataset.equipment == ""
+        );
     }
 }
 

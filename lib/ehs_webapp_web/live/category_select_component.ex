@@ -1,8 +1,6 @@
 defmodule EhsWebappWeb.CategorySelectComponent do
   use EhsWebappWeb, :live_component
-  
   alias EhsWebapp.Equipments
-
   def mount(socket) do
     socket = assign(socket,
       categories: Equipments.list_categories(),
@@ -16,17 +14,17 @@ defmodule EhsWebappWeb.CategorySelectComponent do
     ~H"""
     <div>
       <.input type="select" label="Category" name="category_id" value="" phx-change="cat_change" phx-target={@myself}
-        options={[{"", "-"} | Enum.map(@categories, fn cat -> {cat.category, cat.id} end)]}
+        options={[{"", ""} | Enum.map(@categories, fn cat -> {cat.category, cat.id} end)]}
       />
-      <.input type="hidden" name="subcategory_id" value="-" disabled={!@disabled}/>
+      <.input type="hidden" name="subcategory_id" value="" disabled={!@disabled}/>
       <.input type="select" label="Subcategory" name="subcategory_id" value="" id="subcat_select" disabled={@disabled}
-        options={[ {"", "-"} | Enum.map(@subcategories, fn cat -> {cat.subcategory, cat.id} end)]}
+        options={[ {"", ""} | Enum.map(@subcategories, fn cat -> {cat.subcategory, cat.id} end)]}
       />
     </div>
     """
   end
 
-  def handle_event("cat_change", %{"_target" => _t, "category_id" => "-"}, socket) do
+  def handle_event("cat_change", %{"_target" => _t, "category_id" => ""}, socket) do
     socket = assign(socket, 
       subcategories: [],
       disabled: true

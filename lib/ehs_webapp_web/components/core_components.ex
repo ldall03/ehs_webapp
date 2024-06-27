@@ -595,6 +595,7 @@ defmodule EhsWebappWeb.CoreComponents do
   attr :options, :list, required: true, doc: "options given to the select"
   attr :id, :string, required: true, doc: "id used to set the text of the button on change"
   attr :click_action, :string, default: nil, doc: "phx-click action to be executed on click"
+  attr :change_action, :string, default: nil, doc: "phx-change action to be executed on select change"
   attr :disabled, :boolean, default: false, doc: "whether or not the button will be disabled"
   attr :class, :string, default: nil
   attr :rest, :global
@@ -602,17 +603,15 @@ defmodule EhsWebappWeb.CoreComponents do
   def select_button(assigns) do
     ~H"""
     <div id={@id} class={["relative", @class]} {@rest} >
-      <.button id={"#{@id}-sb"} phx-click={@click_action} name="select_button" value="" class="select-btn-btn" disabled={@disabled}></.button>
-      <.input id={"#{@id}-s"} name="select_value" phx-hook="SelectButtonOnChange" type="select" value="" options={@options} class="select-btn-select" />
+      <.form phx-change={@change_action}>
+        <.button id={"#{@id}-sb"} type="button" phx-click={@click_action} name="select_button" value="" class="select-btn-btn" disabled={@disabled}></.button>
+        <.input id={"#{@id}-s"} name="select_value" phx-hook="SelectButtonOnChange" type="select" value="" options={@options} class="select-btn-select" />
+      </.form>
     </div>
     """
   end
 
   ## JS Commands
-
-  def set_select_button_text(js \\ %JS{}, selector) do
-    
-  end
 
   def show(js \\ %JS{}, selector) do
     JS.show(js,

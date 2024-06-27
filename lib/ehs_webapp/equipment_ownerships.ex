@@ -9,6 +9,7 @@ defmodule EhsWebapp.EquipmentOwnerships do
   alias EhsWebapp.EquipmentOwnerships.EquipmentOwnership
   alias EhsWebapp.ClientCompanies.ClientCompany
   alias EhsWebapp.Equipments.{Category, Subcategory, Equipment}
+  alias EhsWebapp.Accounts.User
 
   @doc """
   Returns the list of equipment_ownerships.
@@ -51,10 +52,15 @@ defmodule EhsWebapp.EquipmentOwnerships do
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_equipment_ownership(attrs \\ %{}) do
-    %EquipmentOwnership{}
-    |> EquipmentOwnership.changeset(attrs)
-    |> Repo.insert()
+  def create_equipment_ownership(%User{} = user, attrs \\ %{}) do
+    if user.superuser do
+      IO.inspect(attrs)
+      %EquipmentOwnership{}
+      |> EquipmentOwnership.changeset(attrs)
+      |> Repo.insert()
+    else
+      {:error, :unauthorized} 
+    end
   end
 
   @doc """
@@ -69,10 +75,19 @@ defmodule EhsWebapp.EquipmentOwnerships do
       {:error, %Ecto.Changeset{}}
 
   """
-  def update_equipment_ownership(%EquipmentOwnership{} = equipment_ownership, attrs) do
-    equipment_ownership
-    |> EquipmentOwnership.changeset(attrs)
-    |> Repo.update()
+  def update_equipment_ownership(%EquipmentOwnership{} = equipment_ownership, %User{} = user, attrs) do
+    if user.superuser or user.client_company_id == equipment_ownership.client_company_id do
+      fields = cond do
+        user.superuser -> attrs
+        !user.superuser -> Map.take(attrs, ["department", "current_owner", "owner_id"])
+      end
+
+      equipment_ownership
+      |> EquipmentOwnership.changeset(fields)
+      |> Repo.update()
+    else
+      {:error, :unauthorized}
+    end
   end
 
   @doc """
@@ -87,8 +102,12 @@ defmodule EhsWebapp.EquipmentOwnerships do
       {:error, %Ecto.Changeset{}}
 
   """
-  def delete_equipment_ownership(%EquipmentOwnership{} = equipment_ownership) do
-    Repo.delete(equipment_ownership)
+  def delete_equipment_ownership(%User{} = user, %EquipmentOwnership{} = equipment_ownership) do
+    if user.superuser do
+      Repo.delete(equipment_ownership)
+    else
+      {:error, :unauthorized}
+    end
   end
 
   @doc """
@@ -107,8 +126,8 @@ defmodule EhsWebapp.EquipmentOwnerships do
   def equipment_search(params, user, data \\ [])
   def equipment_search(%{
     "equipment"         => "",
-    "category_id"       => "-",
-    "subcategory_id"    => "-",
+    "category_id"       => "",
+    "subcategory_id"    => "",
     "brand"             => "",
     "part_number"       => "",
     "batch_number"      => "",
@@ -120,8 +139,8 @@ defmodule EhsWebapp.EquipmentOwnerships do
 
   def equipment_search(%{
     "equipment"         => "",
-    "category_id"       => "-",
-    "subcategory_id"    => "-",
+    "category_id"       => "",
+    "subcategory_id"    => "",
     "brand"             => "",
     "part_number"       => "",
     "batch_number"      => "",
@@ -146,19 +165,19 @@ defmodule EhsWebapp.EquipmentOwnerships do
       |> join(:inner, [eq, sub, cat], o in EquipmentOwnership, on: eq.id == o.equipment_id)
       |> join(:inner, [eq, sub, cat, o], com in ClientCompany, on: o.client_company_id == com.id)
 
-    query = if params["equipment"] != "", do: query
+    query = if cmp_or_nil(params["equipment"]), do: query
       |> where([eq], like(eq.equipment, ^equipment_pattern)), else: query
-    query = if params["category_id"] != "-", do: query
+    query = if cmp_or_nil(params["category_id"]), do: query
       |> where([eq, sub, cat], cat.id == ^params["category_id"]), else: query
-    query = if params["subcategory_id"] != "-", do: query
+    query = if cmp_or_nil(params["subcategory_id"]), do: query
       |> where([eq, sub], sub.id == ^params["subcategory_id"]), else: query
-    query = if params["brand"] != "", do: query
+    query = if cmp_or_nil(params["brand"]), do: query
       |> where([eq], like(eq.brand, ^brand_pattern)), else: query
-    query = if params["part_number"] != "", do: query
+    query = if cmp_or_nil(params["part_number"]), do: query
       |> where([eq], eq.part_number == ^params["part_number"]), else: query
-    query = if params["batch_number"] != "", do: query
+    query = if cmp_or_nil(params["batch_number"]), do: query
       |> where([eq, sub, cat, o], o.batch_number == ^params["batch_number"]), else: query
-    query = if params["serial_number"] != "", do: query
+    query = if cmp_or_nil(params["serial_number"]), do: query
       |> where([eq, sub, cat, o], o.serial_number == ^params["serial_number"]), else: query
     query = if cmp_or_nil(params["company_name"]), do: query
       |> where([eq, sub, cat, o, com], like(com.company_name, ^client_pattern)), else: query

@@ -58,55 +58,114 @@
     </div>
   </div>
   <div class="flex w-full">
-    <div class="flex justify-between border border-ccDark w-3/5 p-8">
-      <div class="flex w-5/12">
-        <div class="w-1/2">
-          <p class="text-lg font-bold m-8 h-8">Equipment:</p>
-          <p class="text-lg font-bold m-8 h-8">Brand:</p>
-          <p class="text-lg font-bold m-8 h-8">Part No.:</p>
-          <p class="text-lg font-bold m-8 h-8">Client:</p>
-          <p class="text-lg font-bold m-8 h-8">Batch No.:</p>
-          <p class="text-lg font-bold m-8 h-8">Serial No.:</p>
-          <p class="text-lg font-bold m-8 h-8">MFGDT:</p>
-          <p class="text-lg font-bold m-8 h-8">Service Date:</p>
-        </div>
-        <div class="w-1/2">
-          <p class="text-lg font-normal my-8 mr-8 h-8"><%= @selection.equipment %></p>
-          <p class="text-lg font-normal my-8 mr-8 h-8"><%= @selection.brand %></p>
-          <p class="text-lg font-normal my-8 mr-8 h-8"><%= @selection.part_number %></p>
-          <p class="text-lg font-normal my-8 mr-8 h-8"><%= @selection.client %></p>
-          <p class="text-lg font-normal my-8 mr-8 h-8"><%= @selection.batch_number %></p>
-          <p class="text-lg font-normal my-8 mr-8 h-8"><%= @selection.serial_number %></p>
-          <p class="text-lg font-normal my-8 mr-8 h-8"><%= @selection.mfgdt %></p>
-          <p class="text-lg font-normal my-8 mr-8 h-8"><%= @selection.service_date %></p>
-        </div>
+    <div class="flex justify-between border border-ccDark w-3/5 pr-8">
+      <div id="admin-norm-display" class="flex w-10/12">
+        <.form id="ownerships-form" for={@ownerships_form} phx-submit={JS.push("ownership_submit") |> toggle_forms(@current_user)} class="flex w-full">
+          <.input  type="hidden" name="id" field={@ownerships_form[:id]} /> 
+          <table class="w-full">
+            <tr>
+              <td class="w-1/4"> <p class="font-bold ml-4 my-6">Equipment:</p> </td>
+              <td class="w-1/4"> 
+                <.input class="toggleable h-8 hidden" type="text" name="equipment_id" field={@ownerships_form[:equipment_id]} required /> 
+                <p class="toggleable font-normal"><%= @selection.equipment %></p>
+              </td>
+              <td class="w-1/4"> <p class="font-bold ml-4">Inspection Interval:</p> </td>
+              <td class="w-1/4"> 
+                <.input class="toggleable h-8 hidden" type="text" name="inspection_interval" field={@ownerships_form[:inspection_interval]} placeholder="Inspection Interval" /> 
+                <p class="toggleable font-normal"><%= @selection.inspection_interval %></p>
+              </td>
+            </tr>
+            <tr>
+              <td> <p class="font-bold ml-4 my-6">Brand:</p> </td>
+              <td>
+                <.input class="toggleable h-8 hidden" type="text" name="brand" field={@ownerships_form[:brand]} /> 
+                <p class="toggleable font-normal"><%= @selection.brand %></p>
+              </td>
+              <td> <p class="font-bold ml-4">Last Inspection Date:</p> </td>
+              <td>
+                <.input class="toggleable h-8 hidden" type="date" name="last_inspection_date" field={@ownerships_form[:last_inspection_date]} /> 
+                <p class="toggleable font-normal"><%= @selection.last_inspection_date %></p>
+              </td>
+            </tr>
+            <tr>
+              <td> <p class="font-bold ml-4 my-6">Part No.:</p> </td>
+              <td> 
+                <.input class="toggleable h-8 hidden" type="text" name="part_number" field={@ownerships_form[:part_number]} /> 
+                <p class="toggleable font-normal"><%= @selection.part_number %></p>
+              </td>
+              <td> <p class="font-bold ml-4">Next Inspection Date:</p> </td>
+              <td> 
+                <.input class="toggleable h-8 hidden" type="date" name="next_inspection_date" field={@ownerships_form[:next_inspection_date]} /> 
+                <p class="toggleable font-normal"><%= @selection.next_inspection_date %></p>
+              </td>
+            </tr>
+            <tr>
+              <td> <p class="font-bold ml-4 my-6">Client:</p> </td>
+              <td> 
+                <.input class="toggleable h-8 hidden" type="text" name="client_company_id" field={@ownerships_form[:client_company_id]} required /> 
+                <p class="toggleable font-normal"><%= @selection.client %></p>
+              </td>
+              <td> <p class="font-bold ml-4">Inactive Date:</p> </td>
+              <td> 
+                <.input class="toggleable h-8 hidden" type="date" name="inactive_date" field={@ownerships_form[:inactive_date]} /> 
+                <p class="toggleable font-normal"><%= @selection.inactive_date %></p>
+              </td>
+            </tr>
+            <tr>
+              <td> <p class="font-bold ml-4 my-6">Batch No.:</p> </td>
+              <td> 
+                <.input class="toggleable h-8 hidden" type="text" name="batch_number" field={@ownerships_form[:batch_number]} placeholder="Batch Number*" required /> 
+                <p class="toggleable font-normal"><%= @selection.batch_number %></p>
+              </td>
+              <td> <p class="font-bold ml-4">Department:</p> </td>
+              <td> 
+                <.input class="toggleable-noadmin h-8 hidden" type="text" name="department" field={@ownerships_form[:department]} placeholder="Department" /> 
+                <p class="toggleable-noadmin font-normal"><%= @selection.department %></p>
+              </td>
+            </tr>
+            <tr>
+              <td> <p class="font-bold ml-4 my-6">Serial No.:</p> </td>
+              <td> 
+                <.input class="toggleable h-8 hidden" type="text" name="serial_number" field={@ownerships_form[:serial_number]} placeholder="Serial Number*" required /> 
+                <p class="toggleable font-normal"><%= @selection.serial_number %></p>
+              </td>
+              <td> <p class="font-bold ml-4">Equipment Owner:</p> </td>
+              <td> 
+                <.input class="toggleable-noadmin h-8 hidden" type="text" name="current_owner" field={@ownerships_form[:current_owner]} placeholder="Quipment Owner" /> 
+                <p class="toggleable-noadmin font-normal"><%= @selection.owner %></p>
+              </td>
+            </tr>
+            <tr>
+              <td> <p class="font-bold ml-4 my-6">MFGDT:</p> </td>
+              <td> 
+                <.input class="toggleable h-8 hidden" type="text" name="mfgdt" field={@ownerships_form[:mfgdt]} placeholder="mfgdt*" required /> 
+                <p class="toggleable font-normal"><%= @selection.mfgdt %></p>
+              </td>
+              <td> <p class="font-bold ml-4">Owner ID:</p> </td>
+              <td> 
+                <.input class="toggleable-noadmin h-8 hidden" type="text" name="owner_id" field={@ownerships_form[:owner_id]} placeholder="Owner ID" /> 
+                <p class="toggleable-noadmin font-normal"><%= @selection.owner_id %></p>
+              </td>
+            </tr>
+            <tr>
+              <td> <p class="font-bold ml-4 my-6">Service Date:</p> </td>
+              <td> 
+                <.input class="toggleable h-8 hidden" type="date" name="service_date" field={@ownerships_form[:service_date]} /> 
+                <p class="toggleable font-normal"><%= @selection.service_date %></p>
+              </td>
+              <td> </td>
+              <td> </td>
+            </tr>
+          </table>
+        </.form>
       </div>
-      <div class="flex w-5/12">
-        <div class="w-1/2">
-          <p class="text-lg font-bold my-8 h-8">Inspection Interval:</p>
-          <p class="text-lg font-bold my-8 h-8">Last Inspection Date:</p>
-          <p class="text-lg font-bold my-8 h-8">Next Inspection Date:</p>
-          <p class="text-lg font-bold my-8 h-8">Inactive Date:</p>
-          <p class="text-lg font-bold my-8 h-8">Department:</p>
-          <p class="text-lg font-bold my-8 h-8">Equipment Owner:</p>
-          <p class="text-lg font-bold my-8 h-8">Owner ID:</p>
-        </div>
-        <div class="w-1/2">
-          <p class="text-lg font-normal my-8 h-8"><%= @selection.inspection_interval %></p>
-          <p class="text-lg font-normal my-8 h-8"><%= @selection.last_inspection_date %></p>
-          <p class="text-lg font-normal my-8 h-8"><%= @selection.next_inspection_date %></p>
-          <p class="text-lg font-normal my-8 h-8"><%= @selection.inactive_date %></p>
-          <p class="text-lg font-normal my-8 h-8"><%= @selection.department %></p>
-          <p class="text-lg font-normal my-8 h-8"><%= @selection.owner %></p>
-          <p class="text-lg font-normal my-8 h-8"><%= @selection.owner_id %></p>
-        </div>
-      </div>
-      <div class="pt-4 w-2/12">
+      <div class="pt-4 w-2/12 relative">
         <%= if @current_user.superuser do %>
           <.select_button 
-            id="info_form_select_btn" 
+            id="info-form-select-btn" 
             disabled={@selection.equipment == ""} 
-            click_action="select_btn_click" 
+            click_action={JS.push("select_btn_click") |> toggle_form_admin(@submit_action != "delete")}
+            change_action="select_btn_change"
             class="w-36 float-right" 
             phx-hook="EnableOnCreateSelectButton"
             data-equipment={@selection.equipment}
@@ -114,15 +173,30 @@
           />
         <% else %>
           <.button 
-            id="info_form_btn" 
+            id="info-form-btn" 
             disabled={@selection.equipment == ""} 
             class="w-36 float-right" 
             data-equipment={@selection.equipment} 
-            phx-click="select_btn_click" 
+            phx-click={JS.push("select_btn_click") |> toggle_form_noadmin()}
             value="update">
             Update
           </.button>
         <% end %>
+        <.button 
+          id="confirm-button"
+          class="w-36 float-right bg-ccGreen hover:bg-ccGreen-dark hidden" 
+          form="ownerships-form"
+          type="submit"
+          >
+          Confirm
+        </.button>
+        <.button 
+          id="cancel-button"
+          class="w-36 bg-ccOrange hover:bg-ccOrange-dark float-right mt-5 hidden" 
+          phx-click={toggle_forms(@current_user)} 
+          >
+          Cancel
+        </.button>
       </div>
     </div>
   </div>
