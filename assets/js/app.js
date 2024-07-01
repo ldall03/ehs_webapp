@@ -85,6 +85,116 @@ Hooks.SelectButtonOnChange = {
     }
 }
 
+Hooks.SelectInput = {
+    mounted() {
+        let input = document.getElementById(this.el.id + "-i")
+        input.addEventListener("focus", () => {
+            first = true;
+            for (var item of document.querySelectorAll(".select-input-li")) {
+                if (item.innerHTML.toLowerCase().includes(input.value.toLowerCase())) {
+                    item.style.display = "block";
+                    if (first) {
+                        item.dataset.selected = "true";
+                        item.classList.add("select-input-li-selected");
+                        first = false
+                    } else  {
+                        item.dataset.selected = "false";
+                        item.classList.remove("select-input-li-selected");
+                    }
+                } else {
+                    item.style.display = "none";
+                }
+            }
+            document.getElementById(this.el.id + "-l").style.opacity = "100";
+        });
+
+        input.addEventListener("focusout", () => {
+            document.getElementById(this.el.id + "-l").style.opacity = "0";
+            if (document.getElementById(this.el.id + "-h").value == "") {
+                input.value = "";
+            }
+        });
+
+        input.addEventListener("keyup", (e) => {
+            if (["ArrowUp", "ArrowDown", "Enter"].includes(e.code)) { return; }
+            document.getElementById(this.el.id + "-h").value = "";
+            let first = true;
+            for (var item of document.querySelectorAll(".select-input-li")) {
+                if (item.innerHTML.toLowerCase().includes(input.value.toLowerCase())) {
+                    item.style.display = "block";
+                    if (first) {
+                        item.dataset.selected = "true";
+                        item.classList.add("select-input-li-selected");
+                    } else {
+                        item.dataset.selected = "flase";
+                        item.classList.remove("select-input-li-selected");
+                    }
+                    first = false;
+                } else {
+                    item.style.display = "none";
+                }
+            }
+        });
+
+        input.addEventListener("keydown", (e) => {
+            let previous = false;
+            let options = Array.from(document.querySelectorAll(".select-input-li"));
+            function goto(list) {
+                list.forEach((item, i) => {
+                    if (item.dataset.selected == "true" && i < list.length - 1) { 
+                        previous = true;
+                        item.dataset.selected = "false";
+                        item.classList.remove("select-input-li-selected");
+                    } else if (previous) {
+                        item.dataset.selected = "true";
+                        item.classList.add("select-input-li-selected");
+                        previous = false;
+                    }
+                });
+            }
+
+            if (e.code == "ArrowDown") {
+                goto(options);
+            } else if (e.code == "ArrowUp") {
+                goto(options.reverse());
+            } else if (e.code == "Enter") {
+                options.forEach((item) => {
+                    if (item.dataset.selected == "true") {
+                        item.dataset.selected = "false";
+                        document.getElementById(this.el.id + "-i").blur();
+                        document.getElementById(this.el.id + "-i").value = item.innerHTML;
+                        document.getElementById(this.el.id + "-h").value = item.dataset.value;
+                        document.getElementById(this.el.id + "-l").style.opacity = "0";
+                    }
+                })
+            } else if (e.code == "Escape") {
+                options.forEach((item) => {
+                    document.getElementById(this.el.id + "-i").blur();
+                    document.getElementById(this.el.id + "-i").value = "";
+                    document.getElementById(this.el.id + "-h").value = "";
+                    document.getElementById(this.el.id + "-l").style.opacity = "0";
+                })
+            }
+        });
+
+        for (var item of document.querySelectorAll(".select-input-li")) {
+            item.addEventListener("mousedown", (e) => {
+                document.getElementById(this.el.id + "-i").value = e.target.innerHTML;
+                document.getElementById(this.el.id + "-h").value = e.target.dataset.value;
+            });
+
+            item.addEventListener("mouseover", (e) => {
+                for (var item of document.querySelectorAll(".select-input-li")) {
+                    item.dataset.selected = false;
+                    item.classList.remove("select-input-li-selected");
+                }
+                e.target.dataset.selected = true;
+                e.target.classList.add("select-input-li-selected");
+            });
+        }
+    }
+}
+
 let liveSocket = new LiveSocket("/live", Socket, {params: {_csrf_token: csrfToken}, hooks: Hooks})
 
 // Show progress bar on live navigation and form submits

@@ -161,16 +161,18 @@
       </div>
       <div class="pt-4 w-2/12 relative">
         <%= if @current_user.superuser do %>
-          <.select_button 
-            id="info-form-select-btn" 
-            disabled={@selection.equipment == ""} 
-            click_action={JS.push("select_btn_click") |> toggle_form_admin(@submit_action != "delete")}
-            change_action="select_btn_change"
-            class="w-36 float-right" 
-            phx-hook="EnableOnCreateSelectButton"
-            data-equipment={@selection.equipment}
-            options={[{"Update", "update"}, {"Create", "create"}, {"Delete", "delete"}]}
-          />
+          <.form phx-change="select_btn_change">
+            <.select_button 
+              id="info-form-select-btn" 
+              disabled={@selection.equipment == ""} 
+              click_action={JS.push("select_btn_click") |> toggle_form_admin(@submit_action != "delete")}
+              class="w-36 float-right" 
+              phx-hook="EnableOnCreateSelectButton"
+              data-equipment={@selection.equipment}
+              options={[{"Update", "update"}, {"Create", "create"}, {"Delete", "delete"}]}
+            />
+          </.form>
+            <.select_input id="select-input-test" options={[{"Apples", "1"}, {"Banana", "2"}, {"Grapes", "3"}, {"Orange", "4"}]} />
         <% else %>
           <.button 
             id="info-form-btn" 

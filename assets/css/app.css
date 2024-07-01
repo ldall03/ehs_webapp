@@ -27,6 +27,10 @@
     @apply text-ccGrey-light hover:bg-ccBlue active:text-ccGrey-light;
 }
 
+.select-input-li-selected {
+    @apply text-white bg-ccBlue;
+}
+
 #info-form-btn:disabled {
     @apply text-ccGrey-light hover:bg-ccBlue active:text-ccGrey-light;
 }
