@@ -610,18 +610,34 @@ defmodule EhsWebappWeb.CoreComponents do
 
   attr :options, :list, required: true, doc: "options given to the select"
   attr :id, :string, required: true, doc: "id used to set the text of the button on change"
-  attr :disabled, :boolean, default: false, doc: "whether or not the button will be disabled"
+  attr :name, :string, default: "", doc: "name used for the value of the input submitted in form"
+  attr :placeholder, :string, default: "", doc: "placeholder for the text input"
+  attr :required, :boolean, default: false, doc: "required option for text input"
+  attr :disabled, :boolean, default: false, doc: "whether or not the text input will be disabled"
   attr :class, :string, default: nil
+  attr :label, :string, default: nil
+  attr :value, :string, default: nil
+
+  attr :field, Phoenix.HTML.FormField, default: nil, doc: "a form field struct retrieved from the form, for example: @form[:email]"
+
   attr :rest, :global
 
   def select_input(assigns) do
     ~H"""
-    <div id={@id} class={["relative", @class]} phx-hook="SelectInput" {@rest}>
-      <.input id={"#{@id}-i"} name="input_text" type="text" value="" class="select-input-input" />
-      <.input id={"#{@id}-h"} name="input_value" type="hidden" value="" />
-      <div id={"#{@id}-l"} class="border rounded-lg drop-shadow p-1 opacity-0 transition-all ease-in-out absolute w-full bg-white">
-        <%= for {item, value} <- @options do %>
-          <div class="select-input-li rounded-lg p-1 text-ccGrey cursor-default" data-value={value} data-selected="false" ><%= item %></div>
+    <div id={@id} phx-hook="SelectInput" class={["relative", @class]}>
+      <.label for={"#{@id}-i"}><%= @label %></.label>
+      <.input id={"#{@id}-i"} name={"#{@name}_input"} type="text" phx-update="ignore" phx-debounce="blur" value="" required={@required} disabled={@disabled} placeholder={@placeholder} {@rest} />
+      <%= if @value do %>
+        <.input id={"#{@id}-h"} value={@value} field={@field} name={@name} type="hidden" />
+      <% else %>
+        <.input id={"#{@id}-h"} field={@field} name={@name} type="hidden" />
+      <% end %>
+      <div id={"#{@id}-l"} class="border backdrop-blur-sm rounded-lg drop-shadow p-1 hidden transition-all ease-in-out absolute w-full bg-ccLightT z-50 max-h-64 overflow-scroll">
+        <%= for item <- @options do %>
+          <%= case item do %>
+            <% item = {name, value} -> %> <div class={"select-input-li-#{@id} rounded-lg p-1 text-ccGrey cursor-default"} data-value={value} data-selected="false" ><%= name %></div>
+            <% _ -> %> <div class={"select-input-li-#{@id} rounded-lg p-1 text-ccGrey cursor-default"} data-value={item} data-selected="false" ><%= item %></div>
+          <% end %>
         <% end %>
       </div>
     </div>

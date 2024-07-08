@@ -2,11 +2,13 @@ defmodule EhsWebappWeb.AdminPanelLive.AccountsComponent do
   use EhsWebappWeb, :live_component
 
   alias EhsWebapp.{Accounts, Accounts.User}
+  alias EhsWebapp.ClientCompanies
 
   def mount(socket) do
     socket = assign(socket,
       form: to_form(Accounts.change_user_registration(%User{})),
-      gen_pwd: ""
+      gen_pwd: "",
+      client_companies: ClientCompanies.list_client_companies()
     )
     {:ok, socket}
   end
@@ -21,7 +23,9 @@ defmodule EhsWebappWeb.AdminPanelLive.AccountsComponent do
           <.input type="text" label="Last Name*" name="l_name" placeholder="Last Name" required value="" autocomplete="off" field={@form[:l_name]}/>
         </div>
         <.input type="email" label="Email*" name="email" placeholder="Email" required value="" autocomplete="off" field={@form[:email]}/>
-        <.input type="number" label="Parent Company" name="client_company_id" placeholder="PLACEHOLDER" required value="" autocomplete="off" field={@form[:client_company_id]}/>
+        <.select_input id="client_company_select" label="Employer Company" name="client_company_id" field={@form[:client_company_id]} placeholder="Employer Company" 
+          options={Enum.map(@client_companies, fn i -> {i.company_name, i.id} end)}
+        />
         <div class="flex">
           <.input type="text" label="Password" name="password" placeholder="Password" required value={@gen_pwd} autocomplete="off" field={@form[:password]}/>
           <.button phx-click="gen_rand_pwd" type="button" phx-target={@myself}>Gen</.button>
@@ -34,6 +38,7 @@ defmodule EhsWebappWeb.AdminPanelLive.AccountsComponent do
   end
 
   def handle_event("register_user", params, socket) do 
+    IO.inspect(params)
     case Accounts.register_user(params) do
       {:ok, user} ->
         {:ok, _} =

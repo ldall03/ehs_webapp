@@ -40,11 +40,6 @@ defmodule EhsWebappWeb.AdminPanelLive do
           @view == "categories" && "bg-ccBlue-light"]}
           href={~p"/admin_panel/categories"}>Categories
         </.link>
-        <.link 
-          class={["font-bold text-center block text-white hover:bg-ccBlue-light w-full py-5", 
-          @view == "ownerships" && "bg-ccBlue-light"]}
-          href={~p"/admin_panel/ownerships"}>Ownerships
-        </.link>
       </div>
       <%= case @view do %>
         <% "clients" -> %>
@@ -55,8 +50,6 @@ defmodule EhsWebappWeb.AdminPanelLive do
           <.live_component module={EhsWebappWeb.AdminPanelLive.EquipmentsComponent} id="equipments_components" />
         <% "categories" -> %>
           <.live_component module={EhsWebappWeb.AdminPanelLive.CategoriesComponent} id="categories_components" />
-        <% "ownerships" -> %>
-          <.live_component module={EhsWebappWeb.AdminPanelLive.OwnershipsComponent} id="ownerships_components" />
       <% end %>
     </div>
     """

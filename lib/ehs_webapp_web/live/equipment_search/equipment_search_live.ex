@@ -2,6 +2,9 @@ defmodule EhsWebappWeb.EquipmentSearchLive do
   use EhsWebappWeb, :live_view
 
   alias EhsWebapp.{Equipments, EquipmentOwnerships, EquipmentOwnerships.EquipmentOwnership}
+  alias EhsWebapp.ClientCompanies
+
+  alias EhsWebapp.Repo
 
   def toggle_form_admin(js \\ %JS{}, exec \\ true) do
     if exec do 
@@ -38,7 +41,11 @@ defmodule EhsWebappWeb.EquipmentSearchLive do
       selection: EquipmentOwnerships.equipment_search_by(nil),
       submit_action: "update",
       form: to_form(%{}),
-      ownerships_form: to_form(EquipmentOwnerships.change_equipment_ownership(%EquipmentOwnership{}))
+      ownerships_form: to_form(EquipmentOwnerships.change_equipment_ownership(%EquipmentOwnership{})),
+      equipments: Equipments.list_equipments(),
+      client_companies: ClientCompanies.list_client_companies(),
+      selected_equipment_name: "",
+      selected_brand: "",
     )}
   end
 
@@ -63,21 +70,8 @@ defmodule EhsWebappWeb.EquipmentSearchLive do
   def handle_event("select", params, socket) do
     selection = EquipmentOwnerships.equipment_search_by(params["item_id"])
     socket = assign(socket,
-      selection: selection,
+      selection: selection
     )
-    {:noreply, socket}
-  end
-
-  def handle_event("select_btn_click", params, socket) do
-    ownerships_form = cond do
-      socket.assigns.submit_action == "update" -> 
-        ownership = EquipmentOwnerships.get_equipment_ownership!(socket.assigns.selection[:id])
-        to_form(EquipmentOwnerships.change_equipment_ownership(ownership))
-      true -> to_form(EquipmentOwnerships.change_equipment_ownership(%EquipmentOwnership{}))
-    end
-
-    socket = if params["value"] == "delete", do: delete_ownership(socket), else: socket
-    socket = assign(socket, ownerships_form: ownerships_form)
     {:noreply, socket}
   end
 
@@ -86,7 +80,74 @@ defmodule EhsWebappWeb.EquipmentSearchLive do
     {:noreply, socket}
   end
 
+  def handle_event("select_btn_click", params, socket) do
+    socket = assign(socket, submit_action: params["value"])
+    socket = cond do
+      params["value"] == "update" -> assign(socket,
+        selected_brand: socket.assigns.selection.brand, 
+        selected_equipment_name: socket.assigns.selection.equipment, 
+        ownerships_form: EquipmentOwnerships.get_equipment_ownership!(socket.assigns.selection[:id])
+          |> EquipmentOwnerships.change_equipment_ownership()
+          |> to_form()
+      )
+      params["value"] == "create" -> assign(socket,
+        ownerships_form: to_form(EquipmentOwnerships.change_equipment_ownership(%EquipmentOwnership{})),
+        selected_brand: "", 
+        selected_equipment_name: ""  
+      )
+      params["value"] == "delete" -> socket
+        |> delete_ownership()
+        |> assign(
+          ownerships_form: to_form(EquipmentOwnerships.change_equipment_ownership(%EquipmentOwnership{})),
+          selected_brand: "", 
+          selected_equipment_name: ""  
+        )
+    end
+
+    {:noreply, socket}
+  end
+
+  def handle_event("validate", %{"_target" => ["equipment_input"]} = params, socket) do
+    form = EquipmentOwnerships.change_equipment_ownership(%EquipmentOwnership{}, params) 
+      |> Ecto.Changeset.put_change(:equipment_id, "")
+      |> to_form()
+    socket = assign(socket, ownerships_form: form, selected_equipment_name: params["equipment"])
+    {:noreply, socket}
+  end
+
+  def handle_event("validate", %{"_target" => ["brand_input"]} = params, socket) do
+    form = EquipmentOwnerships.change_equipment_ownership(%EquipmentOwnership{}, params) 
+      |> Ecto.Changeset.put_change(:equipment_id, "")
+      |> to_form()
+    socket = assign(socket, ownerships_form: form, selected_brand: params["brand"])
+    {:noreply, socket}
+  end
+
+  def handle_event("validate", %{"_target" => ["equipment_id_input"], "equipment_id" => id} = params, socket) when id != "" do
+    item = socket.assigns.equipments |> Enum.find(fn i -> to_string(i.id) == params["equipment_id"] end)
+    params = params
+      |> Map.put("brand", item.brand)
+      |> Map.put("equipment", item.equipment)
+    form = EquipmentOwnerships.change_equipment_ownership(%EquipmentOwnership{}, params) |> to_form()
+    socket = assign(socket, ownerships_form: form, selected_equipment_name: item.equipment, selected_brand: item.brand)
+    {:noreply, socket}
+  end
+
+  def handle_event("validate", %{"_target" => ["equipment_id_input"]} = params, socket) do
+    params = params
+      |> Map.put("brand", "")
+      |> Map.put("equipment", "")
+    form = EquipmentOwnerships.change_equipment_ownership(%EquipmentOwnership{}, params) |> to_form()
+    socket = assign(socket, ownerships_form: form, selected_equipment_name: "", selected_brand: "")
+    {:noreply, socket}
+  end
+
+  def handle_event("validate", params, socket) do
+    {:noreply, socket}
+  end
+
   def handle_event("ownership_submit", params, socket) do
+    IO.puts(socket.assigns.submit_action)
     socket = case socket.assigns.submit_action do
       "update"  -> update_ownership(params, socket)
       "create"  -> create_ownership(params, socket)

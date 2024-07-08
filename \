@@ -94,6 +94,7 @@ Hooks.SelectInput = {
         let input = document.getElementById(this.el.id + "-i")
         input.addEventListener("focus", () => {
             document.querySelector("body").style.overflow = "hidden";
+            document.getElementById(this.el.id"-l").style.bottom = "0px";
             first = true;
             let options = Array.from(document.querySelectorAll(".select-input-li-" + this.el.id));
             for (var item of options) {
@@ -111,14 +112,7 @@ Hooks.SelectInput = {
                     item.style.display = "none";
                 }
             }
-
             document.getElementById(this.el.id + "-l").style.display = "block";
-            let rect = this.el.getBoundingClientRect();
-            if (rect.bottom + document.getElementById(this.el.id + "-l").offsetHeight > (window.innerHeight || document.documentElement.clientHeight)) {
-                document.getElementById(this.el.id + "-l").style.bottom = "calc(0px + 100%)";
-            } else {
-                document.getElementById(this.el.id + "-l").style.bottom = "";
-            }
         });
 
         input.addEventListener("focusout", () => {
