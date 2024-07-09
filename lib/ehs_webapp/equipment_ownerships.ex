@@ -123,7 +123,6 @@ defmodule EhsWebapp.EquipmentOwnerships do
     EquipmentOwnership.changeset(equipment_ownership, attrs)
   end
 
-  def equipment_search(params, user, data \\ [])
   def equipment_search(%{
     "equipment"         => "",
     "category_id"       => "",
@@ -133,8 +132,8 @@ defmodule EhsWebapp.EquipmentOwnerships do
     "batch_number"      => "",
     "serial_number"     => "",
     "company_name"      => ""
-    }, user, data) do
-    data
+    }, user) do
+    []
   end
 
   def equipment_search(%{
@@ -148,11 +147,11 @@ defmodule EhsWebapp.EquipmentOwnerships do
     "department"        => "",
     "current_owner"     => "",
     "current_owner_id"  => ""
-    }, user, data) do
-    data
+    }, user) do
+    []
   end
 
-  def equipment_search(params, user, data) do
+  def equipment_search(params, user) do
     equipment_pattern = "%#{params["equipment"]}%"
     brand_pattern = "%#{params["brand"]}%"
     client_pattern = "%#{params["company_name"]}%"
@@ -190,9 +189,6 @@ defmodule EhsWebapp.EquipmentOwnerships do
 
     query = if !user.superuser, do: query
       |> where([eq, sub, cat, o], o.client_company_id == ^user.client_company_id), else: query
-
-    # add existing data to query to avoid duplicates
-    query = Enum.reduce(data, query, fn i, acc -> acc |> or_where([eq, sub, cat, o], o.id == ^i.id) end)
 
     query = query
       |> select([eq, sub, cat, o, com], 

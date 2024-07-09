@@ -36,73 +36,76 @@ defmodule EhsWebappWeb.EquipmentSearchLive do
   end
 
   def mount(_params, _session, socket) do
-    {:ok, assign(socket, 
-      data: [],
-      selection: EquipmentOwnerships.equipment_search_by(nil),
-      submit_action: "update",
-      form: to_form(%{}),
-      ownerships_form: to_form(EquipmentOwnerships.change_equipment_ownership(%EquipmentOwnership{})),
-      equipments: Equipments.list_equipments(),
-      client_companies: ClientCompanies.list_client_companies(),
-      selected_equipment_name: "",
-      selected_brand: "",
-    )}
+    {:ok, 
+      socket
+      |> assign(form: to_form(%{}),
+        ownerships_form: to_form(EquipmentOwnerships.change_equipment_ownership(%EquipmentOwnership{})),
+        selection: EquipmentOwnerships.equipment_search_by(nil),
+        submit_action: "update",
+        equipments: Equipments.list_equipments(),
+        client_companies: ClientCompanies.list_client_companies(),
+        selected_equipment_name: "",
+        selected_brand: "")
+      |> stream(:data, [])
+      |> allow_upload(:file, accept: ~w(.pdf))
+    }
   end
 
   def handle_event("search", params, socket) do
-    data = EquipmentOwnerships.equipment_search(params, socket.assigns.current_user, socket.assigns.data)
-    socket = assign(socket,
-      data: data
-    )
-    {:noreply, socket}
+    data = EquipmentOwnerships.equipment_search(params, socket.assigns.current_user)
+      |> Enum.map(fn item -> Map.put(item, :selected, false) end)
+    {:noreply, stream(socket, :data, data)}
   end
 
   def handle_event("clear", _params, socket) do
-    data = []
     selection = EquipmentOwnerships.equipment_search_by(nil)
-    socket = assign(socket,
-      data: data,
-      selection: selection
-    )
-    {:noreply, socket}
+    {:noreply, 
+      socket
+      |> stream(:data, [], reset: true)
+      |> assign(selection: selection)
+    }
   end
 
   def handle_event("select", params, socket) do
     selection = EquipmentOwnerships.equipment_search_by(params["item_id"])
-    socket = assign(socket,
-      selection: selection
-    )
-    {:noreply, socket}
+    deselect = socket.assigns.selection
+      |> Map.take([:id, :equipment, :serial_number, :client, :current_owner])
+      |> Map.put(:selected, false)
+    select = selection
+      |> Map.take([:id, :equipment, :serial_number, :client, :current_owner])
+      |> Map.put(:selected, true)
+
+    {:noreply, 
+      socket
+      |> stream(:data, if(deselect.id != "", do: [deselect, select], else: [select]))
+      |> assign(selection: selection)
+    }
   end
 
   def handle_event("select_btn_change", params, socket) do
-    socket = assign(socket, submit_action: params["select_value"])
-    {:noreply, socket}
+    {:noreply, assign(socket, submit_action: params["select_value"])}
   end
 
   def handle_event("select_btn_click", params, socket) do
     socket = assign(socket, submit_action: params["value"])
-    socket = cond do
+    socket = 
+      cond do 
       params["value"] == "update" -> assign(socket,
         selected_brand: socket.assigns.selection.brand, 
         selected_equipment_name: socket.assigns.selection.equipment, 
         ownerships_form: EquipmentOwnerships.get_equipment_ownership!(socket.assigns.selection[:id])
           |> EquipmentOwnerships.change_equipment_ownership()
-          |> to_form()
-      )
+          |> to_form())
       params["value"] == "create" -> assign(socket,
-        ownerships_form: to_form(EquipmentOwnerships.change_equipment_ownership(%EquipmentOwnership{})),
         selected_brand: "", 
-        selected_equipment_name: ""  
-      )
+        selected_equipment_name: "",
+        ownerships_form: to_form(EquipmentOwnerships.change_equipment_ownership(%EquipmentOwnership{})))
       params["value"] == "delete" -> socket
         |> delete_ownership()
-        |> assign(
-          ownerships_form: to_form(EquipmentOwnerships.change_equipment_ownership(%EquipmentOwnership{})),
-          selected_brand: "", 
-          selected_equipment_name: ""  
-        )
-    end
+        |> assign(selected_brand: "", 
+          selected_equipment_name: "",
+          ownerships_form: to_form(EquipmentOwnerships.change_equipment_ownership(%EquipmentOwnership{})))
+      end
 
     {:noreply, socket}
   end
@@ -147,7 +150,6 @@ defmodule EhsWebappWeb.EquipmentSearchLive do
   end
 
   def handle_event("ownership_submit", params, socket) do
-    IO.puts(socket.assigns.submit_action)
     socket = case socket.assigns.submit_action do
       "update"  -> update_ownership(params, socket)
       "create"  -> create_ownership(params, socket)
@@ -157,25 +159,39 @@ defmodule EhsWebappWeb.EquipmentSearchLive do
     {:noreply, socket}
   end
 
+  def handle_event("upload", params, socket) do
+    {:noreply, socket}
+  end
+
   defp update_ownership(params, socket) do
     selected = EquipmentOwnerships.get_equipment_ownership!(socket.assigns.selection[:id])
     EquipmentOwnerships.update_equipment_ownership(selected, socket.assigns.current_user, params)
+
     selection = EquipmentOwnerships.equipment_search_by(socket.assigns.selection[:id])
-    data = EquipmentOwnerships.equipment_search(%{}, socket.assigns.current_user, socket.assigns.data)
-    assign(socket, data: data, selection: selection)
+    select = selection
+      |> Map.take([:id, :equipment, :serial_number, :client, :current_owner])
+      |> Map.put(:selected, true)
+
+    socket
+    |> assign(selection: selection)
+    |> stream_insert(:data, select)
   end
 
   defp create_ownership(params, socket) do
     EquipmentOwnerships.create_equipment_ownership(socket.assigns.current_user, params)
-    data = EquipmentOwnerships.equipment_search(%{"serial_number" => params["serial_number"]}, socket.assigns.current_user, socket.assigns.data)
-    assign(socket, data: data)
+    [item] = EquipmentOwnerships.equipment_search(%{"serial_number" => params["serial_number"]}, socket.assigns.current_user)
+    stream_insert(socket, :data, Map.put(item, :selected, false))
   end
 
   defp delete_ownership(socket) do
     selected = EquipmentOwnerships.get_equipment_ownership!(socket.assigns.selection[:id])
+    select = socket.assigns.selection
+      |> Map.take([:id, :equipment, :serial_number, :client, :current_owner])
+      |> Map.put(:selected, true)
     EquipmentOwnerships.delete_equipment_ownership(socket.assigns.current_user, selected)
-    selection = EquipmentOwnerships.equipment_search_by(nil)
-    data = EquipmentOwnerships.equipment_search(%{}, socket.assigns.current_user, socket.assigns.data)
-    assign(socket, data: data, selection: selection)
+
+    socket 
+    |> assign(selection: EquipmentOwnerships.equipment_search_by(nil))
+    |> stream_delete(:data, select)
   end
 end

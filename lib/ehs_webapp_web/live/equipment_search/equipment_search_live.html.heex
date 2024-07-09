@@ -2,10 +2,10 @@
   <div class="flex w-full">
     <div class="border-x border-ccDark w-1/4">
       <div class="text-lg my-5 w-full text-center">Search By:</div>
-      <.form for={@form} autocomplete="off" phx-submit="search">
+      <.form id="search_form" for={@form} autocomplete="off" phx-submit="search">
         <div class="h-128 overflow-scroll px-10">
-          <.input type="text" label="Equipment" name="equipment" value=""/>
-          <.live_component module={EhsWebappWeb.CategorySelectComponent} id="category_select" />
+          <.input type="text" label="Equipment" name="equipment" field={@form[:name]}/>
+          <.live_component module={EhsWebappWeb.CategorySelectComponent} id="category_select" field={@form[:cat]} />
           <.input type="text" label="Brand" name="brand" value=""/>
           <.input type="text" label="Part No." name="part_number" value=""/>
           <.input type="text" label="Batch No." name="batch_number" value=""/>
@@ -38,11 +38,11 @@
           <%= if @current_user.superuser, do: "Client", else: "Current Owner" %>
         </div>
       </div>
-      <div class="w-full">
-        <%= for item <- @data do %>
+      <div id="data-display" class="w-full" phx-update="stream">
+        <%= for {dom_id, item} <- @streams.data do %>
           <div 
-            class={["flex justify-between w-full border-b", item.id == @selection.id && "bg-ccBlue text-white"]}
-            phx-value-item_id={item.id} phx-click="select">
+            class={["flex justify-between w-full border-b", item.selected && "bg-ccBlue text-white"]}
+            phx-value-item_id={item.id} phx-click="select" id={dom_id}>
             <div class="m-5 w-1/3 flex justify-center">
               <%= item.equipment %>
             </div>
@@ -210,6 +210,14 @@
           >
           Cancel
         </.button>
+      </div>
+    </div>
+    <div class="border border-l-0  border-ccDark w-2/5">
+      <div>
+        <.form id="file-upload-form" for={to_form(%{})} phx-submit="upload" phx-change="validate" class="w-full" >
+          <.live_file_input upload={@uploads.file} />
+          <.button type="submit">Upload</.button>
+        </.form>
       </div>
     </div>
   </div>

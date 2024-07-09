@@ -13,7 +13,7 @@ defmodule EhsWebappWeb.CategorySelectComponent do
   def render(assigns) do # TODO[maybe]: refactor the select
     ~H"""
     <div>
-      <.input type="select" label="Category" name="category_id" value="" phx-change="cat_change" phx-target={@myself}
+      <.input type="select" label="Category" name="category_id" field={@field} phx-change="cat_change" phx-target={@myself}
         options={[{"", ""} | Enum.map(@categories, fn cat -> {cat.category, cat.id} end)]}
       />
       <.input type="hidden" name="subcategory_id" value="" disabled={!@disabled}/>

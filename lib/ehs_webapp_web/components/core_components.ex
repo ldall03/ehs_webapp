@@ -624,9 +624,9 @@ defmodule EhsWebappWeb.CoreComponents do
 
   def select_input(assigns) do
     ~H"""
-    <div id={@id} phx-hook="SelectInput" class={["relative", @class]}>
+    <div id={@id} phx-hook="SelectInput" class="relative">
       <.label for={"#{@id}-i"}><%= @label %></.label>
-      <.input id={"#{@id}-i"} name={"#{@name}_input"} type="text" phx-update="ignore" phx-debounce="blur" value="" required={@required} disabled={@disabled} placeholder={@placeholder} {@rest} />
+      <.input id={"#{@id}-i"} name={"#{@name}_input"} type="text" phx-update="ignore" phx-debounce="blur" value="" required={@required} disabled={@disabled} class={@class} placeholder={@placeholder} {@rest} />
       <%= if @value do %>
         <.input id={"#{@id}-h"} value={@value} field={@field} name={@name} type="hidden" />
       <% else %>
