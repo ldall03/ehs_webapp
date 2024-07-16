@@ -54,7 +54,6 @@ defmodule EhsWebapp.EquipmentOwnerships do
   """
   def create_equipment_ownership(%User{} = user, attrs \\ %{}) do
     if user.superuser do
-      IO.inspect(attrs)
       %EquipmentOwnership{}
       |> EquipmentOwnership.changeset(attrs)
       |> Repo.insert()
@@ -132,7 +131,7 @@ defmodule EhsWebapp.EquipmentOwnerships do
     "batch_number"      => "",
     "serial_number"     => "",
     "company_name"      => ""
-    }, user) do
+    }, _user) do
     []
   end
 
@@ -147,7 +146,7 @@ defmodule EhsWebapp.EquipmentOwnerships do
     "department"        => "",
     "current_owner"     => "",
     "current_owner_id"  => ""
-    }, user) do
+    }, _user) do
     []
   end
 
@@ -276,6 +275,139 @@ defmodule EhsWebapp.EquipmentOwnerships do
   end
 
   defp cmp_or_nil(nil), do: false
-
   defp cmp_or_nil(val), do: !(val == "")
+
+  alias EhsWebapp.EquipmentOwnerships.Calibration
+
+  @doc """
+  Returns the list of calibrations.
+
+  ## Examples
+
+      iex> list_calibrations()
+      [%Calibration{}, ...]
+
+  """
+  def list_calibrations_by(id) do
+    Repo.all(Calibration |> where([c], c.equipment_ownership_id == ^id))
+  end
+
+  @doc """
+  Creates a calibration.
+
+  ## Examples
+
+      iex> create_calibration(%{field: value})
+      {:ok, %Calibration{}}
+
+      iex> create_calibration(%{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_calibration(%User{} = user, attrs \\ %{}) do
+    ownership = get_equipment_ownership!(attrs["equipment_ownership_id"])
+    if user.superuser || user.client_company_id == ownership.client_company_id do
+      %Calibration{}
+      |> Calibration.changeset(attrs)
+      |> Repo.insert()
+    else
+      {:error, :unauthorized}
+    end
+  end
+
+  @doc """
+  Deletes a calibration.
+
+  ## Examples
+
+      iex> delete_calibration(calibration)
+      {:ok, %Calibration{}}
+
+      iex> delete_calibration(calibration)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_calibration(%Calibration{} = calibration) do
+    Repo.delete(calibration)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking calibration changes.
+
+  ## Examples
+
+      iex> change_calibration(calibration)
+      %Ecto.Changeset{data: %Calibration{}}
+
+  """
+  def change_calibration(%Calibration{} = calibration, attrs \\ %{}) do
+    Calibration.changeset(calibration, attrs)
+  end
+
+  alias EhsWebapp.EquipmentOwnerships.TechnicalReport
+
+  @doc """
+  Returns the list of technical_reports.
+
+  ## Examples
+
+      iex> list_technical_reports()
+      [%TechnicalReport{}, ...]
+
+  """
+  def list_technical_reports_by(id) do
+    Repo.all(TechnicalReport |> where([r], r.equipment_ownership_id == ^id))
+  end
+
+  @doc """
+  Creates a technical_report.
+
+  ## Examples
+
+      iex> create_technical_report(%{field: value})
+      {:ok, %TechnicalReport{}}
+
+      iex> create_technical_report(%{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_technical_report(%User{} = user, attrs \\ %{}) do
+    ownership = get_equipment_ownership!(attrs["equipment_ownership_id"])
+    if user.superuser || user.client_company_id == ownership.client_company_id do
+      %TechnicalReport{}
+      |> TechnicalReport.changeset(attrs)
+      |> Repo.insert()
+    else
+      {:error, :unauthorized}
+    end
+  end
+
+  @doc """
+  Deletes a technical_report.
+
+  ## Examples
+
+      iex> delete_technical_report(technical_report)
+      {:ok, %TechnicalReport{}}
+
+      iex> delete_technical_report(technical_report)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_technical_report(%TechnicalReport{} = technical_report) do
+    Repo.delete(technical_report)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking technical_report changes.
+
+  ## Examples
+
+      iex> change_technical_report(technical_report)
+      %Ecto.Changeset{data: %TechnicalReport{}}
+
+  """
+  def change_technical_report(%TechnicalReport{} = technical_report, attrs \\ %{}) do
+    TechnicalReport.changeset(technical_report, attrs)
+  end
 end

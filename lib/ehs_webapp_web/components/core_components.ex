@@ -594,18 +594,33 @@ defmodule EhsWebappWeb.CoreComponents do
 
   attr :options, :list, required: true, doc: "options given to the select"
   attr :id, :string, required: true, doc: "id used to set the text of the button on change"
+  attr :name, :string, required: true
+  attr :click_warning, :string, default: nil, doc: "data-confirm attribute for button"
   attr :click_action, :string, default: nil, doc: "phx-click action to be executed on click"
   attr :disabled, :boolean, default: false, doc: "whether or not the button will be disabled"
   attr :class, :string, default: nil
+  attr :type, :string, default: "button"
   attr :rest, :global
 
   def select_button(assigns) do
     ~H"""
-    <div id={@id} class={["relative", @class]} {@rest} >
-      <.button id={"#{@id}-sb"} type="button" phx-click={@click_action} name="select_button" value="" class="select-btn-btn" disabled={@disabled}></.button>
-      <.input id={"#{@id}-s"} name="select_value" phx-hook="SelectButtonOnChange" type="select" value="" options={@options} class="select-btn-select" />
+    <div id={@id} class={["relative", @class]} phx-hook="SelectButtonOnChange" {@rest} >
+      <.button id={"#{@id}-sb"} type={@type} phx-click={@click_action} data-confirm={@click_warning} name="select_button" class="select-btn-btn" disabled={@disabled}></.button>
+      <.input id={"#{@id}-s"} name="select_value" type="select" value="" options={@options} class="select-btn-select" />
     </div>
     """
+    # <div id={@id} phx-hook="SelectButton" class="relative">
+    #   <.button id={"#{@id}-b"} type={@type} phx-click={@click_action} name={"#{@name}_btn"} disabled={@disabled} class="select-btn-btn">Button</.button>
+    #   <.button id={"#{@id}-db"} type="button" class="select-btn-dbtn"></.button>
+    #   <div id={"#{@id}-l"} class="border rounded-lg drop-shadow p-1 transition-all ease-in-out absolute w-full bg-ccGrey z-50 max-h-64 overflow-scroll">
+    #     <%= for item <- @options do %>
+    #       <%= case item do %>
+    #         <% item = {name, value} -> %> <div class={"select-input-li-#{@id} rounded-lg p-1 text-ccLight cursor-default"} data-value={value} data-selected="false" ><%= name %></div>
+    #         <% _ -> %> <div class={"select-input-li-#{@id} rounded-lg p-1 text-ccLight cursor-default"} data-value={item} data-selected="false" ><%= item %></div>
+    #       <% end %>
+    #     <% end %>
+    #   </div>
+    # </div>
   end
 
   attr :options, :list, required: true, doc: "options given to the select"
@@ -626,13 +641,13 @@ defmodule EhsWebappWeb.CoreComponents do
     ~H"""
     <div id={@id} phx-hook="SelectInput" class="relative">
       <.label for={"#{@id}-i"}><%= @label %></.label>
-      <.input id={"#{@id}-i"} name={"#{@name}_input"} type="text" phx-update="ignore" phx-debounce="blur" value="" required={@required} disabled={@disabled} class={@class} placeholder={@placeholder} {@rest} />
+      <.input id={"#{@id}-i"} name={"#{@name}_input"} autocomplete="off" type="text" phx-update="ignore" phx-debounce="blur" value="" required={@required} disabled={@disabled} class={@class} placeholder={@placeholder} {@rest} />
       <%= if @value do %>
         <.input id={"#{@id}-h"} value={@value} field={@field} name={@name} type="hidden" />
       <% else %>
         <.input id={"#{@id}-h"} field={@field} name={@name} type="hidden" />
       <% end %>
-      <div id={"#{@id}-l"} class="border backdrop-blur-sm rounded-lg drop-shadow p-1 hidden transition-all ease-in-out absolute w-full bg-ccLightT z-50 max-h-64 overflow-scroll">
+      <div id={"#{@id}-l"} class="border backdrop-blur-sm rounded-lg drop-shadow p-1 hidden transition-all ease-in-out absolute w-full bg-ccTransparent-light z-50 max-h-64 overflow-scroll">
         <%= for item <- @options do %>
           <%= case item do %>
             <% item = {name, value} -> %> <div class={"select-input-li-#{@id} rounded-lg p-1 text-ccGrey cursor-default"} data-value={value} data-selected="false" ><%= name %></div>

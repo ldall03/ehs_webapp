@@ -29,4 +29,32 @@ defmodule EhsWebapp.EquipmentOwnershipsFixtures do
 
     equipment_ownership
   end
+
+  @doc """
+  Generate a calibration.
+  """
+  def calibration_fixture(attrs \\ %{}) do
+    {:ok, calibration} =
+      attrs
+      |> Enum.into(%{
+        url: "some url"
+      })
+      |> EhsWebapp.EquipmentOwnerships.create_calibration()
+
+    calibration
+  end
+
+  @doc """
+  Generate a technical_report.
+  """
+  def technical_report_fixture(attrs \\ %{}) do
+    {:ok, technical_report} =
+      attrs
+      |> Enum.into(%{
+        url: "some url"
+      })
+      |> EhsWebapp.EquipmentOwnerships.create_technical_report()
+
+    technical_report
+  end
 end

@@ -40,7 +40,11 @@ module.exports = {
           dark: "#262626"
         },
         ccDark: "#1f1f2d",
-        ccLightT: "#ffffff80"
+        ccTransparent: {
+            light: "#ffffff80",
+            DEFAULT: "#404040ff",
+            dark: "#1f1f2dff"
+        }
       },
       spacing: {
         '128': '38rem',

@@ -2,20 +2,20 @@
   <div class="flex w-full">
     <div class="border-x border-ccDark w-1/4">
       <div class="text-lg my-5 w-full text-center">Search By:</div>
-      <.form id="search_form" for={@form} autocomplete="off" phx-submit="search">
+      <.form id="search_form" for={@search_form} autocomplete="off" phx-submit="search" phx-change="search_change">
         <div class="h-128 overflow-scroll px-10">
-          <.input type="text" label="Equipment" name="equipment" field={@form[:name]}/>
-          <.live_component module={EhsWebappWeb.CategorySelectComponent} id="category_select" field={@form[:cat]} />
-          <.input type="text" label="Brand" name="brand" value=""/>
-          <.input type="text" label="Part No." name="part_number" value=""/>
-          <.input type="text" label="Batch No." name="batch_number" value=""/>
-          <.input type="text" label="Serial No." name="serial_number" value=""/>
+          <.input type="text" class="search_input" phx-debounce="blur" label="Equipment" name="equipment" field={@search_form[:equipment]} />
+          <.live_component module={EhsWebappWeb.CategorySelectComponent} id="category_select" parent_form={@search_form} />
+          <.input type="text" class="search_input" phx-debounce="blur" label="Brand" name="brand" field={@search_form[:brand]}/>
+          <.input type="text" class="search_input" phx-debounce="blur" label="Part No." name="part_number" field={@search_form[:part_number]}/>
+          <.input type="text" class="search_input" phx-debounce="blur" label="Batch No." name="batch_number" field={@search_form[:batch_number]}/>
+          <.input type="text" class="search_input" phx-debounce="blur" label="Serial No." name="serial_number" field={@search_form[:serial_number]}/>
           <%= if @current_user.superuser do %>
-            <.input type="text" label="Client" name="company_name" value=""/>
+            <.input type="text" class="search_input" phx-debounce="blur" label="Client" name="company_name" field={@search_form[:company_name]}/>
           <% else %>
-            <.input type="text" label="Department" name="department" value=""/>
-            <.input type="text" label="Current Owner" name="current_owner" value=""/>
-            <.input type="text" label="Owner ID" name="current_owner_id" value=""/>
+            <.input type="text" class="search_input" phx-debounce="blur" label="Department" name="department" field={@search_form[:department]}/>
+            <.input type="text" class="search_input" phx-debounce="blur" label="Current Owner" name="current_owner" field={@search_form[:current_owner]}/>
+            <.input type="text" class="search_input" phx-debounce="blur" label="Owner ID" name="current_owner_id" field={@search_form[:current_owner_id]}/>
           <% end %>
         </div>
         <div class="px-10">
@@ -61,8 +61,7 @@
     <div class="flex justify-between border border-ccDark w-3/5 pr-8">
       <div id="admin-norm-display" class="flex w-10/12">
         <.form id="ownerships-form" for={@ownerships_form} phx-change="validate" phx-submit={JS.push("ownership_submit") |> toggle_forms(@current_user)} class="flex w-full">
-          <.input type="hidden" name="id" field={@ownerships_form[:id]} /> 
-          <table class="w-full">
+          <table class="w-full h-96">
             <tr>
               <td class="w-1/4"> <p class="font-bold ml-4 my-6">Equipment:</p> </td>
               <td class="w-1/4"> 
@@ -173,13 +172,13 @@
       </div>
       <div class="pt-4 w-2/12 relative">
         <%= if @current_user.superuser do %>
-          <.form phx-change="select_btn_change">
+          <.form id="select_btn_form" phx-change="select_btn_change">
             <.select_button 
               id="info-form-select-btn" 
-              disabled={@selection.equipment == ""} 
+              disabled={@selection.equipment == "" and @submit_action != "create"} 
+              click_warning={@submit_action == "delete" && "Are you sure you want to delete this ownership? This action is irrevertible."}
               click_action={JS.push("select_btn_click") |> toggle_form_admin(@submit_action != "delete")}
               class="w-36 float-right" 
-              phx-hook="EnableOnCreateSelectButton"
               data-equipment={@selection.equipment}
               options={[{"Update", "update"}, {"Create", "create"}, {"Delete", "delete"}]}
             />
@@ -212,13 +211,87 @@
         </.button>
       </div>
     </div>
-    <div class="border border-l-0  border-ccDark w-2/5">
-      <div>
-        <.form id="file-upload-form" for={to_form(%{})} phx-submit="upload" phx-change="validate" class="w-full" >
-          <.live_file_input upload={@uploads.file} />
-          <.button type="submit">Upload</.button>
-        </.form>
+    <div class="border border-l-0  border-ccDark w-2/5 pb-8">
+      <div class="flex flex-col w-3/5">
+        <div class="font-bold text-lg ml-8 mt-6 mb-4">Reference Documents:</div>
+        <.link href="#" class={["p-2 ml-10 text-lg", if(@selection.id != "", do: "text-ccBlue hover:underline", else: "text-ccGrey cursor-default")]} disabled={@selection.id == ""}>Manual</.link>
+        <.link href="#" class={["p-2 ml-10 text-lg", if(@selection.id != "", do: "text-ccBlue hover:underline", else: "text-ccGrey cursor-default")]} disabled={@selection.id == ""}>Brochure</.link>
+        <.link href="#" class={["p-2 ml-10 text-lg", if(@selection.id != "", do: "text-ccBlue hover:underline", else: "text-ccGrey cursor-default")]} disabled={@selection.id == ""}>Spec Sheet</.link>
+        <.link href="#" class={["p-2 ml-10 text-lg", if(@selection.id != "", do: "text-ccBlue hover:underline", else: "text-ccGrey cursor-default")]} disabled={@selection.id == ""}>Certificate of Conformance</.link>
       </div>
+      <div class="flex justify-between">
+        <div class="flex flex-col w-3/5">
+          <div class="font-bold text-lg ml-8 mt-6 mb-4">Inspections/Calibrations:</div>
+          <div class="h-64 overflow-scroll flex flex-col">
+            <%= for {dom_id, calibration} <- @streams.calibrations do %>
+            <.link href={~p"/#{calibration.url}"} class="text-ccBlue p-2 ml-10 text-lg hover:underline"><%= Path.basename(calibration.url) %></.link>
+            <% end %>
+          </div>
+        </div>
+        <%= if @current_user.superuser do %>
+          <.button phx-click={JS.push("choose_file_prefix") |> toggle_file_upload()} value="calibration" disabled={@selection.id == ""} class="w-48 mt-4 mr-8 h-10 disabled:hover:bg-ccBlue disabled:active:text-ccGrey-light disabled:text-ccGrey-light">
+            Upload Document
+          </.button>
+        <% end %>
+      </div>
+      <div class="flex justify-between">
+        <div class="flex flex-col w-3/5">
+          <div class="font-bold text-lg ml-8 mt-6 mb-4">Technical Reports:</div>
+          <div class="h-64 overflow-scroll flex flex-col">
+            <%= for {dom_id, report} <- @streams.tech_reports do %>
+            <.link href={~p"/#{report.url}"} class="text-ccBlue p-2 ml-10 text-lg hover:underline"><%= Path.basename(report.url) %></.link>
+            <% end %>
+          </div>
+        </div>
+        <%= if @current_user.superuser do %>
+          <.button phx-click={JS.push("choose_file_prefix") |> toggle_file_upload()} value="report" disabled={@selection.id == ""} class="w-48 float-right mt-4 mr-8 h-10 disabled:hover:bg-ccBlue disabled:active:text-ccGrey-light disabled:text-ccGrey-light">
+            Upload Document
+          </.button>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <div id="file-upload-backdrop" class="hidden fixed backdrop-blur-sm bg-ccTransparent overscroll-contain top-0 bottom-0 right-0 left-0 opacity-70"></div>
+  <div id="file-upload-container" class="hidden fixed w-3/5 left-0 right-0 top-0 bottom-0 m-auto border-2 border-ccBlue rounded-xl bg-white h-128 p-1">
+    <div class="text-xl m-6">Select the document you want to upload:</div>
+    <div class="flex">
+      <div class="bg-sky-500 w-1"></div>
+      <div class="py-6 px-8 bg-sky-200 w-full">Maximum file size allowed for upload: 1 Mb</div>
+    </div>
+    <p class="text-ccRed text-sm h-6"><%= if Enum.member?(["manual", "brochure", "spec_sheet", "certificate"], @file_prefix), do: "NOTE: this will overwrite the currently existing file.", else: "" %></p>
+    <section phx-drop-target={@uploads.files.ref} class="text-center w-full border-2 border-dashed border-ccGrey-light rounded p-4 mb-6 justify-center h-56">
+      <p class="text-xl font-light my-4">Drag and drop document here</p>
+      <p class="text-xl font-light mt-4 mb-10">or</p>
+      <.form for={to_form(%{})} phx-change="upload_validate" phx-submit={JS.push("upload") |> toggle_file_upload()} id="upload_form">
+        <.live_file_input upload={@uploads.files} class="sr-only" />
+        <.input type="hidden" name="file_prefix" value={@file_prefix} id="file_prefix_input" />
+        <label for={@uploads.files.ref} class="bg-ccBlue hover:bg-ccBlue-dark py-2.5 px-6 text-white rounded-lg cursor-pointer">Select File</label>
+      </.form>
+    </section>
+    <div class="h-28">
+      <%= for file <- @uploads.files.entries do %>
+        <p class="font-bold px-4"><%= "#{file.client_name} (#{format_file_size(file.client_size)})" %></p>
+        <progress value={file.progress} max="100" class="mx-4 w-1/2 h-8 rounded-lg [&::-webkit-progress-value]:bg-ccGreen [&::-moz-progress-bar]:bg-ccGreen"><%= file.progress %>%</progress>
+        <%= if file.progress > 0 do %>
+          <p class="text-sm px-6"><%= if file.progress < 100, do: "Uploading...", else: "Complete" %></p>
+        <% end %>
+        <%= for err <- upload_errors(@uploads.files, file) do %>
+          <p class="text-sm px-6 text-ccRed"><%= error_to_string(err) %></p>
+        <% end %>
+      <% end %>
+      <%= for err <- upload_errors(@uploads.files) do %>
+        <p class="text-sm px-6 text-ccRed"><%= error_to_string(err) %></p>
+      <% end %>
+    </div>
+    <div>
+      <.button class="float-right w-36 mx-4 my-2 bg-ccGreen hover:bg-ccGreen-dark disabled:bg-ccGrey disabled:hover:bg-ccGrey disabled:active:text-ccGrey disabled:text-ccGrey-light" 
+        form="upload_form" type="submit" disabled={length(@uploads.files.entries) == 0}>Confirm
+      </.button>
+      <.button class="float-right w-36 mx-4 my-2 bg-ccOrange hover:bg-ccOrange-dark" 
+        phx-value-ref={length(@uploads.files.entries) > 0 && Enum.at(@uploads.files.entries, 0).ref} 
+        phx-click={JS.push("cancel_upload") |> toggle_file_upload()}>Close
+      </.button>
     </div>
   </div>
 </div>

@@ -56,7 +56,7 @@ config :ehs_webapp, EhsWebappWeb.Endpoint,
 config :ehs_webapp, EhsWebappWeb.Endpoint,
   live_reload: [
     patterns: [
-      ~r"priv/static/.*(js|css|png|jpeg|jpg|gif|svg)$",
+      ~r"priv/static/[^uploads].*(js|css|png|jpeg|jpg|gif|svg)$",
       ~r"priv/gettext/.*(po)$",
       ~r"lib/ehs_webapp_web/(controllers|live|components)/.*(ex|heex)$"
     ]

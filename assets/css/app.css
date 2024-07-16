@@ -16,11 +16,29 @@
 }
 
 .select-btn-btn {
-    @apply border-r border-ccDark;
-    height: 40px;
+    @apply border-r border-ccDark absolute;
+    height: 38px;
+    float: left;
     border-radius: 10px 0 0 10px;
-    position: absolute;
     width: calc(100% - 34px);
+}
+
+.select-btn-dbtn {
+    height: 38px;
+    float: right;
+    border-radius: 0 10px 10px 0;
+    width: 34px;
+}
+
+.select-btn-dbtn::after {
+    @apply mb-px;
+    content: "";
+    border-width: 0 2px 2px 0;
+    border-color:#cccccc;
+    display: inline-block;
+    padding: 3px;
+    transform: rotate(45deg);
+    -webkit-transform: rotate(45deg);
 }
 
 .select-btn-btn:disabled {

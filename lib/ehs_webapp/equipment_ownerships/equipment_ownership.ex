@@ -18,6 +18,8 @@ defmodule EhsWebapp.EquipmentOwnerships.EquipmentOwnership do
     field :inactive_date, :date
     belongs_to :equipment, EhsWebapp.Equipments.Equipment
     belongs_to :client_company, EhsWebapp.ClientCompanies.ClientCompany
+    has_many :calibrations, EhsWebapp.EquipmentOwnerships.Calibration
+    has_many :technical_reports, EhsWebapp.EquipmentOwnerships.TechnicalReport
 
     timestamps()
   end

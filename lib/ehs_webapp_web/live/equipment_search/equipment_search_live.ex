@@ -1,10 +1,10 @@
 defmodule EhsWebappWeb.EquipmentSearchLive do
   use EhsWebappWeb, :live_view
 
-  alias EhsWebapp.{Equipments, EquipmentOwnerships, EquipmentOwnerships.EquipmentOwnership}
+  alias EhsWebapp.{EquipmentOwnerships.EquipmentOwnership, EquipmentOwnerships.Calibration, EquipmentOwnerships.TechnicalReport}
+  alias EhsWebapp.Equipments
+  alias EhsWebapp.EquipmentOwnerships
   alias EhsWebapp.ClientCompanies
-
-  alias EhsWebapp.Repo
 
   def toggle_form_admin(js \\ %JS{}, exec \\ true) do
     if exec do 
@@ -35,26 +35,50 @@ defmodule EhsWebappWeb.EquipmentSearchLive do
     end  
   end
 
+  def toggle_file_upload(js \\ %JS{}) do
+    js
+    |> JS.toggle_class("overflow-hidden", to: "body")
+    |> JS.toggle(to: "#file-upload-backdrop")
+    |> JS.toggle(to: "#file-upload-container")
+  end
+  
+  def clear_inputs(js \\ %JS{}) do
+    js
+    |> JS.set_attribute({"value", ""}, to: ".search_input")
+  end
+
   def mount(_params, _session, socket) do
     {:ok, 
       socket
-      |> assign(form: to_form(%{}),
+      |> assign(search_form: to_form(%{"empty" => nil}),
         ownerships_form: to_form(EquipmentOwnerships.change_equipment_ownership(%EquipmentOwnership{})),
         selection: EquipmentOwnerships.equipment_search_by(nil),
         submit_action: "update",
         equipments: Equipments.list_equipments(),
         client_companies: ClientCompanies.list_client_companies(),
         selected_equipment_name: "",
-        selected_brand: "")
+        selected_brand: "",
+        file_prefix: "")
       |> stream(:data, [])
-      |> allow_upload(:file, accept: ~w(.pdf))
+      |> stream(:calibrations, [])
+      |> stream(:tech_reports, [])
+      |> allow_upload(:files, accept: ~w(.pdf), max_file_size: 1_000_000, auto_upload: true)
     }
   end
 
   def handle_event("search", params, socket) do
     data = EquipmentOwnerships.equipment_search(params, socket.assigns.current_user)
       |> Enum.map(fn item -> Map.put(item, :selected, false) end)
-    {:noreply, stream(socket, :data, data)}
+
+    {:noreply, 
+      socket
+      |> stream(:data, data)
+      |> assign(search_form: to_form(%{}))
+    }
+  end
+
+  def handle_event("search_change", %{"_target" => [t]} = params, socket) do
+    {:noreply, assign(socket, search_form: to_form(params))}
   end
 
   def handle_event("clear", _params, socket) do
@@ -62,24 +86,30 @@ defmodule EhsWebappWeb.EquipmentSearchLive do
     {:noreply, 
       socket
       |> stream(:data, [], reset: true)
-      |> assign(selection: selection)
+      |> assign(selection: selection, search_form: to_form(%{}))
     }
   end
 
   def handle_event("select", params, socket) do
-    selection = EquipmentOwnerships.equipment_search_by(params["item_id"])
-    deselect = socket.assigns.selection
-      |> Map.take([:id, :equipment, :serial_number, :client, :current_owner])
-      |> Map.put(:selected, false)
-    select = selection
-      |> Map.take([:id, :equipment, :serial_number, :client, :current_owner])
-      |> Map.put(:selected, true)
+    if params["item_id"] == to_string(socket.assigns.selection.id) do
+      {:noreply, socket}
+    else
+      selection = EquipmentOwnerships.equipment_search_by(params["item_id"])
+      deselect = socket.assigns.selection
+        |> Map.take([:id, :equipment, :serial_number, :client, :current_owner])
+        |> Map.put(:selected, false)
+      select = selection
+        |> Map.take([:id, :equipment, :serial_number, :client, :current_owner])
+        |> Map.put(:selected, true)
 
-    {:noreply, 
-      socket
-      |> stream(:data, if(deselect.id != "", do: [deselect, select], else: [select]))
-      |> assign(selection: selection)
-    }
+      {:noreply, 
+        socket
+        |> stream(:data, if(deselect.id != "", do: [deselect, select], else: [select]))
+        |> stream(:calibrations, EquipmentOwnerships.list_calibrations_by(selection.id))
+        |> stream(:tech_reports, EquipmentOwnerships.list_technical_reports_by(selection.id))
+        |> assign(selection: selection)
+      }
+    end
   end
 
   def handle_event("select_btn_change", params, socket) do
@@ -87,7 +117,6 @@ defmodule EhsWebappWeb.EquipmentSearchLive do
   end
 
   def handle_event("select_btn_click", params, socket) do
-    socket = assign(socket, submit_action: params["value"])
     socket = 
       cond do 
       params["value"] == "update" -> assign(socket,
@@ -105,6 +134,7 @@ defmodule EhsWebappWeb.EquipmentSearchLive do
         |> assign(selected_brand: "", 
           selected_equipment_name: "",
           ownerships_form: to_form(EquipmentOwnerships.change_equipment_ownership(%EquipmentOwnership{})))
+        true -> socket
       end
 
     {:noreply, socket}
@@ -145,7 +175,7 @@ defmodule EhsWebappWeb.EquipmentSearchLive do
     {:noreply, socket}
   end
 
-  def handle_event("validate", params, socket) do
+  def handle_event("validate", _params, socket) do
     {:noreply, socket}
   end
 
@@ -159,7 +189,36 @@ defmodule EhsWebappWeb.EquipmentSearchLive do
     {:noreply, socket}
   end
 
-  def handle_event("upload", params, socket) do
+  def handle_event("choose_file_prefix", params, socket) do
+    {:noreply, assign(socket, file_prefix: params["value"])} 
+  end
+
+  def handle_event("upload_validate", params, socket) do
+    IO.inspect(params)
+    {:noreply, socket}
+  end
+
+  def handle_event("upload", %{"file_prefix" => "calibration"}, socket) do
+    params = put_file_url(socket, :calibration) |> Map.put("equipment_ownership_id", socket.assigns.selection.id)
+    case EquipmentOwnerships.create_calibration(socket.assigns.current_user, params) do
+      {:ok, cal}  -> consume_uploaded_file(socket, cal)
+      _           -> {:noreply, put_flash(socket, :error, "Something went wrong")}
+    end
+  end
+
+  def handle_event("upload", %{"file_prefix" => "report"}, socket) do
+    params = put_file_url(socket, :report) |> Map.put("equipment_ownership_id", socket.assigns.selection.id)
+    case EquipmentOwnerships.create_technical_report(socket.assigns.current_user, params) do
+      {:ok, rep}  -> consume_uploaded_file(socket, rep)
+      _           -> {:noreply, put_flash(socket, :error, "Something went wrong")}
+    end
+  end
+
+  def handle_event("cancel_upload", %{"ref" => ref}, socket) do
+    {:noreply, cancel_upload(socket, :files, ref)}
+  end
+
+  def handle_event("cancel_upload", _params, socket) do
     {:noreply, socket}
   end
 
@@ -193,5 +252,48 @@ defmodule EhsWebappWeb.EquipmentSearchLive do
     socket 
     |> assign(selection: EquipmentOwnerships.equipment_search_by(nil))
     |> stream_delete(:data, select)
+  end
+
+  defp error_to_string(:too_large), do: "File is too large"
+  defp error_to_string(:not_accepted), do: "Only .pdf files are allowed"
+  defp error_to_string(:too_many_files), do: "You may only choose one file"
+  defp format_file_size(size) do
+    if size > 1_000_000 do
+      "#{Float.round(size / 1_000_000, 2)} Mb"
+    else
+      "#{Float.round(size / 1000, 1)} Kb"
+    end
+  end
+
+  # part of following code is taken from: https://www.youtube.com/watch?v=PffpT2eslH8&t=530s
+  defp ext(entry) do
+    [ext | _] = MIME.extensions(entry.client_type)
+    ext
+  end
+
+  defp put_file_url(socket, :calibration) do
+    {[entry], []} = uploaded_entries(socket, :files)
+    %{"url" => "/uploads/calibrations/CAL#{entry.uuid}.#{ext(entry)}"}
+  end
+
+  defp put_file_url(socket, :report) do
+    {[entry], []} = uploaded_entries(socket, :files)
+    %{"url" => "/uploads/tech_reports/REP#{entry.uuid}.#{ext(entry)}"}
+  end
+
+  defp consume_uploaded_file(socket, %Calibration{} = calibration) do
+    consume_uploaded_entries(socket, :files, fn meta, entry ->
+      dest = Path.join(Application.app_dir(:ehs_webapp, "priv/static/uploads/calibrations"), "CAL#{entry.uuid}.#{ext(entry)}")
+      File.cp!(meta.path, dest)
+    end)
+    {:noreply, put_flash(socket, :info, "Calibration file uploaded")}
+  end
+
+  defp consume_uploaded_file(socket, %TechnicalReport{} = report) do
+    consume_uploaded_entries(socket, :files, fn meta, entry ->
+      dest = Path.join(Application.app_dir(:ehs_webapp, "priv/static/uploads/tech_reports"), "REP#{entry.uuid}.#{ext(entry)}")
+      File.cp!(meta.path, dest)
+    end)
+    {:noreply, put_flash(socket, :info, "Technical report file uploaded")}
   end
 end

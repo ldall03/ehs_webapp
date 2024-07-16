@@ -54,32 +54,18 @@ Hooks.SwitchSubForms = {
     }
 }
 
-Hooks.EnableOnCreateSelectButton = {
-    updated() {
-        let select = document.getElementById("info-form-select-btn-s");
-        let btn_id = "info-form-select-btn-sb";
-        document.getElementById(btn_id).disabled = (
-            select.options[select.selectedIndex].value != "create"
-            && this.el.dataset.equipment == ""
-        );
-
-        if (select.options[select.selectedIndex].value == "delete") {
-            document.getElementById(btn_id).dataset.confirm = "Are you sure you want to delete this ownership? This action is irrevertible."
-        }
-    }
-}
-
 function changeBtnText(id) {
-    let btn_id = id + "b";
-    let select = document.getElementById(id);
+    let btn_id = id + "-sb";
+    let select = document.getElementById(id + "-s");
     document.getElementById(btn_id).innerText = select.options[select.selectedIndex].text;
     document.getElementById(btn_id).value = select.value;
 }
 
 Hooks.SelectButtonOnChange = {
     mounted() {
-        this.el.addEventListener("change", () => {
+        document.getElementById(this.el.id + "-s").addEventListener("change", () => {
             changeBtnText(this.el.id);
+            this.el.dispatchEvent(new Event("select_button_custom"))
         })
 
         changeBtnText(this.el.id);
@@ -141,7 +127,7 @@ Hooks.SelectInput = {
                         item.dataset.selected = "true";
                         item.classList.add("select-input-li-selected");
                     } else {
-                        item.dataset.selected = "flase";
+                        item.dataset.selected = "false";
                         item.classList.remove("select-input-li-selected");
                     }
                     first = false;

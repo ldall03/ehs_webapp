@@ -80,4 +80,112 @@ defmodule EhsWebapp.EquipmentOwnershipsTest do
       assert %Ecto.Changeset{} = EquipmentOwnerships.change_equipment_ownership(equipment_ownership)
     end
   end
+
+  describe "calibrations" do
+    alias EhsWebapp.EquipmentOwnerships.Calibration
+
+    import EhsWebapp.EquipmentOwnershipsFixtures
+
+    @invalid_attrs %{url: nil}
+
+    test "list_calibrations/0 returns all calibrations" do
+      calibration = calibration_fixture()
+      assert EquipmentOwnerships.list_calibrations() == [calibration]
+    end
+
+    test "get_calibration!/1 returns the calibration with given id" do
+      calibration = calibration_fixture()
+      assert EquipmentOwnerships.get_calibration!(calibration.id) == calibration
+    end
+
+    test "create_calibration/1 with valid data creates a calibration" do
+      valid_attrs = %{url: "some url"}
+
+      assert {:ok, %Calibration{} = calibration} = EquipmentOwnerships.create_calibration(valid_attrs)
+      assert calibration.url == "some url"
+    end
+
+    test "create_calibration/1 with invalid data returns error changeset" do
+      assert {:error, %Ecto.Changeset{}} = EquipmentOwnerships.create_calibration(@invalid_attrs)
+    end
+
+    test "update_calibration/2 with valid data updates the calibration" do
+      calibration = calibration_fixture()
+      update_attrs = %{url: "some updated url"}
+
+      assert {:ok, %Calibration{} = calibration} = EquipmentOwnerships.update_calibration(calibration, update_attrs)
+      assert calibration.url == "some updated url"
+    end
+
+    test "update_calibration/2 with invalid data returns error changeset" do
+      calibration = calibration_fixture()
+      assert {:error, %Ecto.Changeset{}} = EquipmentOwnerships.update_calibration(calibration, @invalid_attrs)
+      assert calibration == EquipmentOwnerships.get_calibration!(calibration.id)
+    end
+
+    test "delete_calibration/1 deletes the calibration" do
+      calibration = calibration_fixture()
+      assert {:ok, %Calibration{}} = EquipmentOwnerships.delete_calibration(calibration)
+      assert_raise Ecto.NoResultsError, fn -> EquipmentOwnerships.get_calibration!(calibration.id) end
+    end
+
+    test "change_calibration/1 returns a calibration changeset" do
+      calibration = calibration_fixture()
+      assert %Ecto.Changeset{} = EquipmentOwnerships.change_calibration(calibration)
+    end
+  end
+
+  describe "technical_reports" do
+    alias EhsWebapp.EquipmentOwnerships.TechnicalReport
+
+    import EhsWebapp.EquipmentOwnershipsFixtures
+
+    @invalid_attrs %{url: nil}
+
+    test "list_technical_reports/0 returns all technical_reports" do
+      technical_report = technical_report_fixture()
+      assert EquipmentOwnerships.list_technical_reports() == [technical_report]
+    end
+
+    test "get_technical_report!/1 returns the technical_report with given id" do
+      technical_report = technical_report_fixture()
+      assert EquipmentOwnerships.get_technical_report!(technical_report.id) == technical_report
+    end
+
+    test "create_technical_report/1 with valid data creates a technical_report" do
+      valid_attrs = %{url: "some url"}
+
+      assert {:ok, %TechnicalReport{} = technical_report} = EquipmentOwnerships.create_technical_report(valid_attrs)
+      assert technical_report.url == "some url"
+    end
+
+    test "create_technical_report/1 with invalid data returns error changeset" do
+      assert {:error, %Ecto.Changeset{}} = EquipmentOwnerships.create_technical_report(@invalid_attrs)
+    end
+
+    test "update_technical_report/2 with valid data updates the technical_report" do
+      technical_report = technical_report_fixture()
+      update_attrs = %{url: "some updated url"}
+
+      assert {:ok, %TechnicalReport{} = technical_report} = EquipmentOwnerships.update_technical_report(technical_report, update_attrs)
+      assert technical_report.url == "some updated url"
+    end
+
+    test "update_technical_report/2 with invalid data returns error changeset" do
+      technical_report = technical_report_fixture()
+      assert {:error, %Ecto.Changeset{}} = EquipmentOwnerships.update_technical_report(technical_report, @invalid_attrs)
+      assert technical_report == EquipmentOwnerships.get_technical_report!(technical_report.id)
+    end
+
+    test "delete_technical_report/1 deletes the technical_report" do
+      technical_report = technical_report_fixture()
+      assert {:ok, %TechnicalReport{}} = EquipmentOwnerships.delete_technical_report(technical_report)
+      assert_raise Ecto.NoResultsError, fn -> EquipmentOwnerships.get_technical_report!(technical_report.id) end
+    end
+
+    test "change_technical_report/1 returns a technical_report changeset" do
+      technical_report = technical_report_fixture()
+      assert %Ecto.Changeset{} = EquipmentOwnerships.change_technical_report(technical_report)
+    end
+  end
 end
