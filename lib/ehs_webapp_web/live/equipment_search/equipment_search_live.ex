@@ -86,6 +86,8 @@ defmodule EhsWebappWeb.EquipmentSearchLive do
     {:noreply, 
       socket
       |> stream(:data, [], reset: true)
+      |> stream(:calibrations, [], reset: true)
+      |> stream(:tech_reports, [], reset: true)
       |> assign(selection: selection, search_form: to_form(%{}))
     }
   end
@@ -104,9 +106,9 @@ defmodule EhsWebappWeb.EquipmentSearchLive do
 
       {:noreply, 
         socket
+        |> stream(:calibrations, EquipmentOwnerships.list_calibrations_by(selection.id), reset: true)
+        |> stream(:tech_reports, EquipmentOwnerships.list_technical_reports_by(selection.id), reset: true)
         |> stream(:data, if(deselect.id != "", do: [deselect, select], else: [select]))
-        |> stream(:calibrations, EquipmentOwnerships.list_calibrations_by(selection.id))
-        |> stream(:tech_reports, EquipmentOwnerships.list_technical_reports_by(selection.id))
         |> assign(selection: selection)
       }
     end
@@ -194,12 +196,15 @@ defmodule EhsWebappWeb.EquipmentSearchLive do
   end
 
   def handle_event("upload_validate", params, socket) do
-    IO.inspect(params)
     {:noreply, socket}
   end
 
   def handle_event("upload", %{"file_prefix" => "calibration"}, socket) do
-    params = put_file_url(socket, :calibration) |> Map.put("equipment_ownership_id", socket.assigns.selection.id)
+    params = %{
+      "url"                     => "/uploads/calibrations/#{get_file_name(socket, "cal")}",
+      "equipment_ownership_id"  => socket.assigns.selection.id
+    }
+
     case EquipmentOwnerships.create_calibration(socket.assigns.current_user, params) do
       {:ok, cal}  -> consume_uploaded_file(socket, cal)
       _           -> {:noreply, put_flash(socket, :error, "Something went wrong")}
@@ -207,7 +212,11 @@ defmodule EhsWebappWeb.EquipmentSearchLive do
   end
 
   def handle_event("upload", %{"file_prefix" => "report"}, socket) do
-    params = put_file_url(socket, :report) |> Map.put("equipment_ownership_id", socket.assigns.selection.id)
+    params = %{
+      "url"                     => "/uploads/tech_reports/#{get_file_name(socket, "rep")}",
+      "equipment_ownership_id"  => socket.assigns.selection.id
+    }
+
     case EquipmentOwnerships.create_technical_report(socket.assigns.current_user, params) do
       {:ok, rep}  -> consume_uploaded_file(socket, rep)
       _           -> {:noreply, put_flash(socket, :error, "Something went wrong")}
@@ -265,35 +274,44 @@ defmodule EhsWebappWeb.EquipmentSearchLive do
     end
   end
 
-  # part of following code is taken from: https://www.youtube.com/watch?v=PffpT2eslH8&t=530s
-  defp ext(entry) do
-    [ext | _] = MIME.extensions(entry.client_type)
-    ext
-  end
-
-  defp put_file_url(socket, :calibration) do
-    {[entry], []} = uploaded_entries(socket, :files)
-    %{"url" => "/uploads/calibrations/CAL#{entry.uuid}.#{ext(entry)}"}
-  end
-
-  defp put_file_url(socket, :report) do
-    {[entry], []} = uploaded_entries(socket, :files)
-    %{"url" => "/uploads/tech_reports/REP#{entry.uuid}.#{ext(entry)}"}
+  defp get_file_name(socket, prefix) do
+    String.upcase(prefix) <> "_"
+    <> (socket.assigns.selection.client 
+    |> String.slice(0..2)
+    |> String.upcase())
+    <> to_string(socket.assigns.selection.id) <> "D"
+    <> (to_string(DateTime.utc_now(:second))
+    |> String.replace("-", "")
+    |> String.replace(":", "")
+    |> String.replace(" ", "T")
+    |> String.replace("Z", "U"))
+    <> to_string(socket.assigns.current_user.id)
+    <> ".pdf"
   end
 
   defp consume_uploaded_file(socket, %Calibration{} = calibration) do
     consume_uploaded_entries(socket, :files, fn meta, entry ->
-      dest = Path.join(Application.app_dir(:ehs_webapp, "priv/static/uploads/calibrations"), "CAL#{entry.uuid}.#{ext(entry)}")
+      dest = Path.join(Application.app_dir(:ehs_webapp, "priv/static"), calibration.url)
       File.cp!(meta.path, dest)
+      {:ok, dest}
     end)
-    {:noreply, put_flash(socket, :info, "Calibration file uploaded")}
+    {:noreply, 
+      socket 
+      |> stream(:calibrations, EquipmentOwnerships.list_calibrations_by(socket.assigns.selection.id), at: 0)
+      |> put_flash(:info, "Calibration file uploaded")
+    }
   end
 
   defp consume_uploaded_file(socket, %TechnicalReport{} = report) do
     consume_uploaded_entries(socket, :files, fn meta, entry ->
-      dest = Path.join(Application.app_dir(:ehs_webapp, "priv/static/uploads/tech_reports"), "REP#{entry.uuid}.#{ext(entry)}")
+      dest = Path.join(Application.app_dir(:ehs_webapp, "priv/static"), report.url)
       File.cp!(meta.path, dest)
+      {:ok, dest}
     end)
-    {:noreply, put_flash(socket, :info, "Technical report file uploaded")}
+    {:noreply, 
+      socket 
+      |> stream(:tech_reports, EquipmentOwnerships.list_technical_reports_by(socket.assigns.selection.id), at: 0)
+      |> put_flash(:info, "Technical report file uploaded")
+    }
   end
 end

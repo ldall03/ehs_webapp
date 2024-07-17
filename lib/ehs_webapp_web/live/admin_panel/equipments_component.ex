@@ -13,23 +13,26 @@ defmodule EhsWebappWeb.AdminPanelLive.EquipmentsComponent do
     {:ok, socket}
   end
 
-  def render(assigns) do # TODO[maybe]: refactor the select
+  def render(assigns) do 
     ~H"""
     <div class="bg-ccLight w-5/6">
       <div class="font-bold p-8 text-xl">Equipments</div>
-      <.form for={@form} phx-submit="new_equipment" phx-target={@myself}>
-        <.input type="text" label="Equipment Name*" name="equipment" placeholder="Equipment Name" value="" autocomplete="off" field={@form[:equipment]}/>
-        <.live_component module={EhsWebappWeb.CategorySelectComponent} id="category_select" />
-        <.input type="text" label="Brand*" name="brand" placeholder="Brand" value="" autocomplete="off" field={@form[:brand]}/>
-        <.input type="textarea" label="Description" name="description" placeholder="Description..." value="" autocomplete="off" field={@form[:description]}/>
+      <.form id="equipment_form" for={@form} phx-submit="new_equipment" phx-change="validate" phx-target={@myself} autocomplete="off">
+        <.input type="text" phx-debounce="blur" label="Equipment Name*" placeholder="Equipment Name..." name="equipment" field={@form[:equipment]} />
+        <.live_component module={EhsWebappWeb.CategorySelectComponent} id="category_select" parent_form={@form} />
+        <.input type="text" phx-debounce="blur" label="Brand*" placeholder="Brand..." name="brand" field={@form[:brand]} />
         <.button type="submit">Add Equipment</.button>
       </.form>
     </div>
     """
   end
 
-  def handle_event("new_equipment", params, socket) do # TODO[con]: reset form
-    Equipments.create_equipment(Map.delete(params, "category_id"))
-    {:noreply, socket}
+  def handle_event("validate", params, socket) do
+    {:noreply, assign(socket, form: to_form(params))}
+  end
+
+  def handle_event("new_equipment", params, socket) do 
+    Equipments.create_equipment(params)
+    {:noreply, assign(socket, form: to_form(%Equipment{}))}
   end
 end

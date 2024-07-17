@@ -222,9 +222,9 @@
       <div class="flex justify-between">
         <div class="flex flex-col w-3/5">
           <div class="font-bold text-lg ml-8 mt-6 mb-4">Inspections/Calibrations:</div>
-          <div class="h-64 overflow-scroll flex flex-col">
+          <div id="calibrations" phx-update="stream" class="h-64 overflow-scroll flex flex-col">
             <%= for {dom_id, calibration} <- @streams.calibrations do %>
-            <.link href={~p"/#{calibration.url}"} class="text-ccBlue p-2 ml-10 text-lg hover:underline"><%= Path.basename(calibration.url) %></.link>
+              <.link id={dom_id} href={calibration.url} target="_blank" class="text-ccBlue p-2 ml-10 text-lg hover:underline"><%= Path.basename(calibration.url) %></.link>
             <% end %>
           </div>
         </div>
@@ -237,9 +237,9 @@
       <div class="flex justify-between">
         <div class="flex flex-col w-3/5">
           <div class="font-bold text-lg ml-8 mt-6 mb-4">Technical Reports:</div>
-          <div class="h-64 overflow-scroll flex flex-col">
+          <div id="tech_reports" phx-update="stream" class="h-64 overflow-scroll flex flex-col">
             <%= for {dom_id, report} <- @streams.tech_reports do %>
-            <.link href={~p"/#{report.url}"} class="text-ccBlue p-2 ml-10 text-lg hover:underline"><%= Path.basename(report.url) %></.link>
+              <.link id={dom_id} href={report.url} target="_blank" class="text-ccBlue p-2 ml-10 text-lg hover:underline"><%= Path.basename(report.url) %></.link>
             <% end %>
           </div>
         </div>

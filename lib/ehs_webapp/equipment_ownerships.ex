@@ -289,7 +289,7 @@ defmodule EhsWebapp.EquipmentOwnerships do
 
   """
   def list_calibrations_by(id) do
-    Repo.all(Calibration |> where([c], c.equipment_ownership_id == ^id))
+    Repo.all(Calibration |> where([c], c.equipment_ownership_id == ^id) |> order_by([c], desc: c.inserted_at))
   end
 
   @doc """
@@ -356,7 +356,7 @@ defmodule EhsWebapp.EquipmentOwnerships do
 
   """
   def list_technical_reports_by(id) do
-    Repo.all(TechnicalReport |> where([r], r.equipment_ownership_id == ^id))
+    Repo.all(TechnicalReport |> where([r], r.equipment_ownership_id == ^id) |> order_by([c], desc: c.inserted_at))
   end
 
   @doc """
