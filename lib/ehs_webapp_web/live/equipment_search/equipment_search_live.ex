@@ -206,8 +206,9 @@ defmodule EhsWebappWeb.EquipmentSearchLive do
     }
 
     case EquipmentOwnerships.create_calibration(socket.assigns.current_user, params) do
-      {:ok, cal}  -> consume_uploaded_file(socket, cal)
-      _           -> {:noreply, put_flash(socket, :error, "Something went wrong")}
+      {:ok, cal}              -> consume_uploaded_file(socket, cal)
+      {:error, :unauthorized} -> {:noreply, :error, "You are not authorized to upload files for this equipment."}
+      _                       -> {:noreply, put_flash(socket, :error, "Something went wrong")}
     end
   end
 
@@ -218,8 +219,9 @@ defmodule EhsWebappWeb.EquipmentSearchLive do
     }
 
     case EquipmentOwnerships.create_technical_report(socket.assigns.current_user, params) do
-      {:ok, rep}  -> consume_uploaded_file(socket, rep)
-      _           -> {:noreply, put_flash(socket, :error, "Something went wrong")}
+      {:ok, rep}              -> consume_uploaded_file(socket, rep)
+      {:error, :unauthorized} -> {:noreply, :error, "You are not authorized to upload files for this equipment."}
+      _                       -> {:noreply, put_flash(socket, :error, "Something went wrong")}
     end
   end
 
@@ -279,7 +281,6 @@ defmodule EhsWebappWeb.EquipmentSearchLive do
     <> (socket.assigns.selection.client 
     |> String.slice(0..2)
     |> String.upcase())
-    <> to_string(socket.assigns.selection.id) <> "D"
     <> (to_string(DateTime.utc_now(:second))
     |> String.replace("-", "")
     |> String.replace(":", "")

@@ -78,7 +78,8 @@ defmodule EhsWebapp.EquipmentOwnerships do
     if user.superuser or user.client_company_id == equipment_ownership.client_company_id do
       fields = cond do
         user.superuser -> attrs
-        !user.superuser -> Map.take(attrs, ["department", "current_owner", "owner_id"])
+        !user.superuser && equipment_ownership.service_date -> Map.take(attrs, ["department", "current_owner", "owner_id"])
+        !user.superuser -> Map.take(attrs, ["department", "current_owner", "owner_id", "service_date"])
       end
 
       equipment_ownership
@@ -219,7 +220,7 @@ defmodule EhsWebapp.EquipmentOwnerships do
       :mfgdt                => "",
       :client               => "",
       :department           => "",
-      :owner                => "",
+      :current_owner        => "",
       :owner_id             => "",
       :service_date         => "",
       :last_inspection_date => "",
@@ -263,7 +264,7 @@ defmodule EhsWebapp.EquipmentOwnerships do
       :mfgdt                => Enum.at(res, 5),
       :client               => Enum.at(res, 6),
       :department           => Enum.at(res, 7),
-      :owner                => Enum.at(res, 8),
+      :current_owner        => Enum.at(res, 8),
       :owner_id             => Enum.at(res, 9),
       :service_date         => Enum.at(res, 10),
       :last_inspection_date => Enum.at(res, 11),
@@ -306,7 +307,7 @@ defmodule EhsWebapp.EquipmentOwnerships do
   """
   def create_calibration(%User{} = user, attrs \\ %{}) do
     ownership = get_equipment_ownership!(attrs["equipment_ownership_id"])
-    if user.superuser || user.client_company_id == ownership.client_company_id do
+    if user.superuser or user.client_company_id == ownership.client_company_id do
       %Calibration{}
       |> Calibration.changeset(attrs)
       |> Repo.insert()

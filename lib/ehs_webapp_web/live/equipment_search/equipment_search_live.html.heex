@@ -104,8 +104,8 @@
               </td>
               <td> <p class="font-bold ml-4">Next Inspection Date:</p> </td>
               <td> 
-                <.input class="toggleable h-8 hidden" type="date" name="next_inspection_date" field={@ownerships_form[:next_inspection_date]} /> 
-                <p class="toggleable font-normal"><%= @selection.next_inspection_date %></p>
+                <.input class="toggleable-noadmin h-8 hidden" type="date" name="next_inspection_date" field={@ownerships_form[:next_inspection_date]} /> 
+                <p class="toggleable-noadmin font-normal"><%= @selection.next_inspection_date %></p>
               </td>
             </tr>
             <tr>
@@ -118,8 +118,8 @@
               </td>
               <td> <p class="font-bold ml-4">Inactive Date:</p> </td>
               <td> 
-                <.input class="toggleable h-8 hidden" type="date" name="inactive_date" field={@ownerships_form[:inactive_date]} /> 
-                <p class="toggleable font-normal"><%= @selection.inactive_date %></p>
+                <.input class="toggleable-noadmin h-8 hidden" type="date" name="inactive_date" field={@ownerships_form[:inactive_date]} /> 
+                <p class="toggleable-noadmin font-normal"><%= @selection.inactive_date %></p>
               </td>
             </tr>
             <tr>
@@ -143,7 +143,7 @@
               <td> <p class="font-bold ml-4">Equipment Owner:</p> </td>
               <td> 
                 <.input phx-debounce="blur" class="toggleable-noadmin h-8 hidden" type="text" name="current_owner" field={@ownerships_form[:current_owner]} placeholder="Quipment Owner" /> 
-                <p class="toggleable-noadmin font-normal"><%= @selection.owner %></p>
+                <p class="toggleable-noadmin font-normal"><%= @selection.current_owner %></p>
               </td>
             </tr>
             <tr>
@@ -159,10 +159,13 @@
               </td>
             </tr>
             <tr>
-              <td> <p class="font-bold ml-4 my-6">Service Date:</p> </td>
               <td> 
-                <.input class="toggleable h-8 hidden" type="date" name="service_date" field={@ownerships_form[:service_date]} /> 
-                <p class="toggleable font-normal"><%= @selection.service_date %></p>
+                <p class="font-bold ml-4 mt-6">Service Date:</p>
+                <p :if={!@selection.service_date} class="text-sm text-ccRed ml-4">*The service date must be updated.</p>
+              </td>
+              <td> 
+                <.input phx-debounce="blur" class="toggleable-noadmin h-8 hidden" type="date" name="service_date" field={@ownerships_form[:service_date]} /> 
+                <p class="toggleable-noadmin font-normal"><%= @selection.service_date %></p>
               </td>
               <td> </td>
               <td> </td>
@@ -228,11 +231,9 @@
             <% end %>
           </div>
         </div>
-        <%= if @current_user.superuser do %>
-          <.button phx-click={JS.push("choose_file_prefix") |> toggle_file_upload()} value="calibration" disabled={@selection.id == ""} class="w-48 mt-4 mr-8 h-10 disabled:hover:bg-ccBlue disabled:active:text-ccGrey-light disabled:text-ccGrey-light">
-            Upload Document
-          </.button>
-        <% end %>
+        <.button phx-click={JS.push("choose_file_prefix") |> toggle_file_upload()} value="calibration" disabled={@selection.id == ""} class="w-48 mt-4 mr-8 h-10 disabled:hover:bg-ccBlue disabled:active:text-ccGrey-light disabled:text-ccGrey-light">
+          Upload Document
+        </.button>
       </div>
       <div class="flex justify-between">
         <div class="flex flex-col w-3/5">
@@ -243,11 +244,9 @@
             <% end %>
           </div>
         </div>
-        <%= if @current_user.superuser do %>
-          <.button phx-click={JS.push("choose_file_prefix") |> toggle_file_upload()} value="report" disabled={@selection.id == ""} class="w-48 float-right mt-4 mr-8 h-10 disabled:hover:bg-ccBlue disabled:active:text-ccGrey-light disabled:text-ccGrey-light">
-            Upload Document
-          </.button>
-        <% end %>
+        <.button phx-click={JS.push("choose_file_prefix") |> toggle_file_upload()} value="report" disabled={@selection.id == ""} class="w-48 float-right mt-4 mr-8 h-10 disabled:hover:bg-ccBlue disabled:active:text-ccGrey-light disabled:text-ccGrey-light">
+          Upload Document
+        </.button>
       </div>
     </div>
   </div>
