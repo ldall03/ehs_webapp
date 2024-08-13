@@ -28,7 +28,7 @@ defmodule EhsWebappWeb.EquipmentSearchLive do
   end
 
   def toggle_forms(js \\ %JS{}, user) do
-    if user.superuser do
+    if user.admin do
       js |> toggle_form_admin()
     else
       js |> toggle_form_noadmin()
@@ -48,12 +48,14 @@ defmodule EhsWebappWeb.EquipmentSearchLive do
   end
 
   def mount(_params, _session, socket) do
+    IO.inspect(socket.assigns)
     {:ok, 
       socket
       |> assign(search_form: to_form(%{"empty" => nil}),
         ownerships_form: to_form(EquipmentOwnerships.change_equipment_ownership(%EquipmentOwnership{})),
         selection: EquipmentOwnerships.equipment_search_by(nil),
         submit_action: "update",
+        next_inspection_date_changed: false,
         equipments: Equipments.list_equipments(),
         client_companies: ClientCompanies.list_client_companies(),
         selected_equipment_name: "",
@@ -70,6 +72,8 @@ defmodule EhsWebappWeb.EquipmentSearchLive do
     data = EquipmentOwnerships.equipment_search(params, socket.assigns.current_user)
       |> Enum.map(fn item -> Map.put(item, :selected, false) end)
 
+    send_update(EhsWebappWeb.CategorySelectComponent, id: "category_select", parent_form: to_form(%{})) # clear category_select
+
     {:noreply, 
       socket
       |> stream(:data, data)
@@ -77,12 +81,15 @@ defmodule EhsWebappWeb.EquipmentSearchLive do
     }
   end
 
-  def handle_event("search_change", %{"_target" => [t]} = params, socket) do
+  def handle_event("search_change", params, socket) do
     {:noreply, assign(socket, search_form: to_form(params))}
   end
 
   def handle_event("clear", _params, socket) do
     selection = EquipmentOwnerships.equipment_search_by(nil)
+
+    send_update(EhsWebappWeb.CategorySelectComponent, id: "category_select", parent_form: to_form(%{})) # clear category_select
+
     {:noreply, 
       socket
       |> stream(:data, [], reset: true)
@@ -139,7 +146,7 @@ defmodule EhsWebappWeb.EquipmentSearchLive do
         true -> socket
       end
 
-    {:noreply, socket}
+    {:noreply, assign(socket, next_inspection_date_changed: false)}
   end
 
   def handle_event("validate", %{"_target" => ["equipment_input"]} = params, socket) do
@@ -177,14 +184,18 @@ defmodule EhsWebappWeb.EquipmentSearchLive do
     {:noreply, socket}
   end
 
+  def handle_event("validate", %{"_target" => ["next_inspection_date"]} = params, socket) do
+    {:noreply, assign(socket, next_inspection_date_changed: true)}
+  end
+
   def handle_event("validate", _params, socket) do
     {:noreply, socket}
   end
 
   def handle_event("ownership_submit", params, socket) do
     socket = case socket.assigns.submit_action do
-      "update"  -> update_ownership(params, socket)
-      "create"  -> create_ownership(params, socket)
+      "update"  -> update_ownership(Map.put(params, "next_inspection_date_changed", socket.assigns.next_inspection_date_changed), socket)
+      "create"  -> create_ownership(Map.put(params, "next_inspection_date_changed", socket.assigns.next_inspection_date_changed), socket)
       _         -> socket
     end
 
@@ -258,11 +269,12 @@ defmodule EhsWebappWeb.EquipmentSearchLive do
     select = socket.assigns.selection
       |> Map.take([:id, :equipment, :serial_number, :client, :current_owner])
       |> Map.put(:selected, true)
-    EquipmentOwnerships.delete_equipment_ownership(socket.assigns.current_user, selected)
-
-    socket 
-    |> assign(selection: EquipmentOwnerships.equipment_search_by(nil))
-    |> stream_delete(:data, select)
+    case EquipmentOwnerships.delete_equipment_ownership(socket.assigns.current_user, selected) do
+      {:ok, ownership} -> socket 
+        |> assign(selection: EquipmentOwnerships.equipment_search_by(nil))
+        |> stream_delete(:data, select)
+      {:error, :unauthorized} -> socket |> put_flash(:error, "You do not have the permission to perform this action")
+    end
   end
 
   defp error_to_string(:too_large), do: "File is too large"
@@ -299,7 +311,7 @@ defmodule EhsWebappWeb.EquipmentSearchLive do
     {:noreply, 
       socket 
       |> stream(:calibrations, EquipmentOwnerships.list_calibrations_by(socket.assigns.selection.id), at: 0)
-      |> put_flash(:info, "Calibration file uploaded")
+      |> put_flash(:info, "Calibration file uploaded.")
     }
   end
 
@@ -312,7 +324,7 @@ defmodule EhsWebappWeb.EquipmentSearchLive do
     {:noreply, 
       socket 
       |> stream(:tech_reports, EquipmentOwnerships.list_technical_reports_by(socket.assigns.selection.id), at: 0)
-      |> put_flash(:info, "Technical report file uploaded")
+      |> put_flash(:info, "Technical report file uploaded.")
     }
   end
 end

@@ -167,7 +167,7 @@ defmodule EhsWebappWeb.UserAuth do
   def on_mount(:ensure_admin, _params, session, socket) do
     socket = mount_current_user(socket, session)
 
-    if socket.assigns.current_user.superuser do
+    if socket.assigns.current_user.admin do
       {:cont, socket}
     else
       socket =
@@ -229,7 +229,7 @@ defmodule EhsWebappWeb.UserAuth do
   end
 
   def require_authenticated_admin(conn, _opts) do
-    if conn.assigns[:current_user].superuser do
+    if conn.assigns[:current_user].admin do
       conn
     else
       conn

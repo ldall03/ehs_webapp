@@ -103,6 +103,8 @@ defmodule EhsWebapp.Equipments do
       order_by: sub.subcategory)
   end
 
+  def get_subcategory!(id), do: Repo.get!(Subcategory, id)
+
   @doc """
   Creates a subcategory.
 

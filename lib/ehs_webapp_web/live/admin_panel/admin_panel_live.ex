@@ -43,15 +43,19 @@ defmodule EhsWebappWeb.AdminPanelLive do
       </div>
       <%= case @view do %>
         <% "clients" -> %>
-          <.live_component module={EhsWebappWeb.AdminPanelLive.ClientsComponent} id="clients_components" />
+          <.live_component module={EhsWebappWeb.AdminPanelLive.ClientsComponent} id="clients_components" current_user={@current_user} />
         <% "accounts" -> %>
-          <.live_component module={EhsWebappWeb.AdminPanelLive.AccountsComponent} id="accounts_components" />
+          <.live_component module={EhsWebappWeb.AdminPanelLive.AccountsComponent} id="accounts_components" current_user={@current_user} />
         <% "equipments" -> %>
-          <.live_component module={EhsWebappWeb.AdminPanelLive.EquipmentsComponent} id="equipments_components" />
+          <.live_component module={EhsWebappWeb.AdminPanelLive.EquipmentsComponent} id="equipments_components" current_user={@current_user} />
         <% "categories" -> %>
-          <.live_component module={EhsWebappWeb.AdminPanelLive.CategoriesComponent} id="categories_components" />
+          <.live_component module={EhsWebappWeb.AdminPanelLive.CategoriesComponent} id="categories_components" current_user={@current_user} />
       <% end %>
     </div>
     """
+  end
+
+  def handle_info({:put_flash, type, message}, socket) do
+    {:noreply, put_flash(socket, type, message)} 
   end
 end

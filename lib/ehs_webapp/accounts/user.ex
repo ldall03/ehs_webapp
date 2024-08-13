@@ -8,7 +8,8 @@ defmodule EhsWebapp.Accounts.User do
     field :hashed_password, :string, redact: true
     field :confirmed_at, :naive_datetime
 
-    field :superuser, :boolean
+    field :admin, :boolean
+    field :superuser, :boolean, default: false
     field :f_name, :string
     field :l_name, :string
     belongs_to :client_company, EhsWebapp.ClientCompanies.ClientCompany
@@ -41,8 +42,8 @@ defmodule EhsWebapp.Accounts.User do
   """
   def registration_changeset(user, attrs, opts \\ []) do
     user
-    |> cast(attrs, [:email, :password, :superuser, :f_name, :l_name, :client_company_id])
-    |> validate_required([:superuser, :f_name, :l_name, :client_company_id])
+    |> cast(attrs, [:email, :password, :admin, :f_name, :l_name, :client_company_id])
+    |> validate_required([:admin, :f_name, :l_name, :client_company_id])
     |> validate_email(opts)
     |> validate_password(opts)
   end

@@ -20,8 +20,8 @@ defmodule EhsWebapp.Equipments.Equipment do
   @doc false
   def changeset(equipment, attrs) do
     equipment
-    |> cast(attrs, [:equipment, :brand, :description, :manual_url, :brochure_url, :spec_sheet_url, :certificate_url, :subcategory_id])
-    |> validate_required([:equipment, :brand, :subcategory_id])
+    |> cast(attrs, [:equipment, :part_number, :brand, :description, :manual_url, :brochure_url, :spec_sheet_url, :certificate_url, :subcategory_id])
+    |> validate_required([:equipment, :part_number, :brand, :subcategory_id])
     |> unique_constraint(:part_number)
   end
 end

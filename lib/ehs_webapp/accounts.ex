@@ -60,6 +60,14 @@ defmodule EhsWebapp.Accounts do
   """
   def get_user!(id), do: Repo.get!(User, id)
 
+  def list_users() do
+    Repo.all(User)
+  end
+
+  def delete_user(%User{} = user) do
+    Repo.delete(user)  
+  end
+
   ## User registration
 
   @doc """

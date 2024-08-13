@@ -53,7 +53,7 @@ defmodule EhsWebapp.EquipmentOwnerships do
 
   """
   def create_equipment_ownership(%User{} = user, attrs \\ %{}) do
-    if user.superuser do
+    if user.admin do
       %EquipmentOwnership{}
       |> EquipmentOwnership.changeset(attrs)
       |> Repo.insert()
@@ -75,13 +75,18 @@ defmodule EhsWebapp.EquipmentOwnerships do
 
   """
   def update_equipment_ownership(%EquipmentOwnership{} = equipment_ownership, %User{} = user, attrs) do
-    if user.superuser or user.client_company_id == equipment_ownership.client_company_id do
-      fields = cond do
-        user.superuser -> attrs
-        !user.superuser && equipment_ownership.service_date -> Map.take(attrs, ["department", "current_owner", "owner_id"])
-        !user.superuser -> Map.take(attrs, ["department", "current_owner", "owner_id", "service_date"])
+    if user.admin or user.client_company_id == equipment_ownership.client_company_id do
+      next_inspection_date = case Date.from_iso8601(attrs["last_inspection_date"]) do
+        {:ok, date} -> Date.to_iso8601(Date.add(date, 30 * String.to_integer(attrs["inspection_interval"])))
+        {:error, _e} -> equipment_ownership.next_inspection_date
       end
 
+      fields = cond do
+        user.admin -> if attrs["next_inspection_date_changed"], do: attrs, else: %{attrs | "next_inspection_date" => next_inspection_date}
+        !user.admin && equipment_ownership.service_date -> Map.take(attrs, ["department", "current_owner", "owner_id", "inactive_date", "last_inspection_date"])
+        !user.admin -> Map.take(attrs, ["department", "current_owner", "owner_id", "inactive_date", "last_inspection_date", "service_date"])
+      end
+      
       equipment_ownership
       |> EquipmentOwnership.changeset(fields)
       |> Repo.update()
@@ -187,7 +192,7 @@ defmodule EhsWebapp.EquipmentOwnerships do
     query = if cmp_or_nil(params["current_owner_id"]), do: query
       |> where([eq, sub, cat, o], o.owner_id == ^params["current_owner_id"]), else: query
 
-    query = if !user.superuser, do: query
+    query = if !user.admin, do: query
       |> where([eq, sub, cat, o], o.client_company_id == ^user.client_company_id), else: query
 
     query = query
@@ -307,7 +312,7 @@ defmodule EhsWebapp.EquipmentOwnerships do
   """
   def create_calibration(%User{} = user, attrs \\ %{}) do
     ownership = get_equipment_ownership!(attrs["equipment_ownership_id"])
-    if user.superuser or user.client_company_id == ownership.client_company_id do
+    if user.admin or user.client_company_id == ownership.client_company_id do
       %Calibration{}
       |> Calibration.changeset(attrs)
       |> Repo.insert()
@@ -374,7 +379,7 @@ defmodule EhsWebapp.EquipmentOwnerships do
   """
   def create_technical_report(%User{} = user, attrs \\ %{}) do
     ownership = get_equipment_ownership!(attrs["equipment_ownership_id"])
-    if user.superuser || user.client_company_id == ownership.client_company_id do
+    if user.admin || user.client_company_id == ownership.client_company_id do
       %TechnicalReport{}
       |> TechnicalReport.changeset(attrs)
       |> Repo.insert()

@@ -10,7 +10,7 @@
           <.input type="text" class="search_input" phx-debounce="blur" label="Part No." name="part_number" field={@search_form[:part_number]}/>
           <.input type="text" class="search_input" phx-debounce="blur" label="Batch No." name="batch_number" field={@search_form[:batch_number]}/>
           <.input type="text" class="search_input" phx-debounce="blur" label="Serial No." name="serial_number" field={@search_form[:serial_number]}/>
-          <%= if @current_user.superuser do %>
+          <%= if @current_user.admin do %>
             <.input type="text" class="search_input" phx-debounce="blur" label="Client" name="company_name" field={@search_form[:company_name]}/>
           <% else %>
             <.input type="text" class="search_input" phx-debounce="blur" label="Department" name="department" field={@search_form[:department]}/>
@@ -35,7 +35,7 @@
           Serial No.
         </div>
         <div class="text-lg m-5 w-1/3 flex justify-center">
-          <%= if @current_user.superuser, do: "Client", else: "Current Owner" %>
+          <%= if @current_user.admin, do: "Client", else: "Current Owner" %>
         </div>
       </div>
       <div id="data-display" class="w-full" phx-update="stream">
@@ -50,7 +50,7 @@
               <%= item.serial_number %>
             </div>
             <div class="m-5 w-1/3 flex justify-center">
-          <%= if @current_user.superuser, do: item.client, else: item.current_owner %>
+          <%= if @current_user.admin, do: item.client, else: item.current_owner %>
             </div>
           </div>
         <% end %>
@@ -88,8 +88,8 @@
               </td>
               <td> <p class="font-bold ml-4">Last Inspection Date:</p> </td>
               <td>
-                <.input class="toggleable h-8 hidden" type="date" name="last_inspection_date" field={@ownerships_form[:last_inspection_date]} /> 
-                <p class="toggleable font-normal"><%= @selection.last_inspection_date %></p>
+                <.input class="toggleable-noadmin h-8 hidden" type="date" name="last_inspection_date" field={@ownerships_form[:last_inspection_date]} /> 
+                <p class="toggleable-noadmin font-normal"><%= @selection.last_inspection_date %></p>
               </td>
             </tr>
             <tr>
@@ -160,21 +160,23 @@
             </tr>
             <tr>
               <td> 
-                <p class="font-bold ml-4 mt-6">Service Date:</p>
-                <p :if={!@selection.service_date} class="text-sm text-ccRed ml-4">*The service date must be updated.</p>
+                <p class="font-bold ml-4 my-6">Service Date:</p>
               </td>
               <td> 
-                <.input phx-debounce="blur" class="toggleable-noadmin h-8 hidden" type="date" name="service_date" field={@ownerships_form[:service_date]} /> 
-                <p class="toggleable-noadmin font-normal"><%= @selection.service_date %></p>
+                <.input phx-debounce="blur" class={["h-8 hidden", if(@selection.service_date, do: "toggleable", else: "toggleable-noadmin")]} type="date" name="service_date" field={@ownerships_form[:service_date]} /> 
+                <p class={["font-normal", if(@selection.service_date, do: "toggleable", else: "toggleable-noadmin")]}><%= @selection.service_date %></p>
               </td>
               <td> </td>
               <td> </td>
             </tr>
+            <tr><td>
+              <p :if={!@selection.service_date} class="text-sm text-ccRed ml-4">*The service date must be updated.</p>
+            </td></tr>
           </table>
         </.form>
       </div>
       <div class="pt-4 w-2/12 relative">
-        <%= if @current_user.superuser do %>
+        <%= if @current_user.admin do %>
           <.form id="select_btn_form" phx-change="select_btn_change">
             <.select_button 
               id="info-form-select-btn" 
