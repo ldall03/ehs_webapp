@@ -232,7 +232,9 @@ defmodule EhsWebapp.EquipmentOwnerships do
       :next_inspection_date => "",
       :inspection_interval  => "",
       :inactive_date        => "",
-      :batch_number         => ""
+      :batch_number         => "",
+      :status               => "",
+      :comments             => ""
     }
   end
   
@@ -257,7 +259,9 @@ defmodule EhsWebapp.EquipmentOwnerships do
         o.next_inspection_date,
         o.inspection_interval,
         o.inactive_date,
-        o.batch_number])
+        o.batch_number,
+        o.status,
+        o.comments])
 
     res = Repo.one(query)
     %{
@@ -276,7 +280,9 @@ defmodule EhsWebapp.EquipmentOwnerships do
       :next_inspection_date => Enum.at(res, 12),
       :inspection_interval  => Enum.at(res, 13),
       :inactive_date        => Enum.at(res, 14),
-      :batch_number         => Enum.at(res, 15)
+      :batch_number         => Enum.at(res, 15),
+      :status               => Enum.at(res, 16),
+      :comments             => Enum.at(res, 17)
     } 
   end
 
