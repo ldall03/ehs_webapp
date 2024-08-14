@@ -77,16 +77,15 @@ defmodule EhsWebapp.EquipmentOwnerships do
   def update_equipment_ownership(%EquipmentOwnership{} = equipment_ownership, %User{} = user, attrs) do
     if user.admin or user.client_company_id == equipment_ownership.client_company_id do
       next_inspection_date = case Date.from_iso8601(attrs["last_inspection_date"]) do
-        {:ok, date} -> Date.to_iso8601(Date.add(date, 30 * String.to_integer(attrs["inspection_interval"])))
+        {:ok, date} -> Date.to_iso8601(Date.add(date, 30 * equipment_ownership.inspection_interval))
         {:error, _e} -> equipment_ownership.next_inspection_date
       end
 
       fields = cond do
-        user.admin -> if attrs["next_inspection_date_changed"], do: attrs, else: %{attrs | "next_inspection_date" => next_inspection_date}
-        !user.admin && equipment_ownership.service_date -> Map.take(attrs, ["department", "current_owner", "owner_id", "inactive_date", "last_inspection_date"])
-        !user.admin -> Map.take(attrs, ["department", "current_owner", "owner_id", "inactive_date", "last_inspection_date", "service_date"])
+        user.admin && attrs["next_inspection_date_changed"] -> attrs
+        true -> Map.put(attrs, "next_inspection_date", next_inspection_date)
       end
-      
+
       equipment_ownership
       |> EquipmentOwnership.changeset(fields)
       |> Repo.update()
