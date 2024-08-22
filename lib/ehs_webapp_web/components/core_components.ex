@@ -600,13 +600,14 @@ defmodule EhsWebappWeb.CoreComponents do
   attr :disabled, :boolean, default: false, doc: "whether or not the button will be disabled"
   attr :class, :string, default: nil
   attr :type, :string, default: "button"
+  attr :value, :string
   attr :rest, :global
 
   def select_button(assigns) do
     ~H"""
     <div id={@id} class={["relative", @class]} phx-hook="SelectButtonOnChange" {@rest} >
       <.button id={"#{@id}-sb"} type={@type} phx-click={@click_action} data-confirm={@click_warning} name="select_button" class="select-btn-btn" disabled={@disabled}></.button>
-      <.input id={"#{@id}-s"} name="select_value" type="select" value="" options={@options} class="select-btn-select" />
+      <.input id={"#{@id}-s"} name="select_value" type="select" value={@value} options={@options} class="select-btn-select" />
     </div>
     """
     # <div id={@id} phx-hook="SelectButton" class="relative">

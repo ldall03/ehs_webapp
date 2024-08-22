@@ -191,6 +191,7 @@
               class="w-36 float-right" 
               data-equipment={@selection.equipment}
               options={[{"Update", "update"}, {"Create", "create"}, {"Delete", "delete"}]}
+              value={@submit_action}
             />
           </.form>
         <% else %>
@@ -224,10 +225,10 @@
     <div class="border border-l-0  border-ccDark w-2/5 pb-8">
       <div class="flex flex-col w-3/5">
         <div class="font-bold text-lg ml-8 mt-6 mb-4">Reference Documents:</div>
-        <.link href="#" class={["p-2 ml-10 text-lg", if(@selection.id != "", do: "text-ccBlue hover:underline", else: "text-ccGrey cursor-default")]} disabled={@selection.id == ""}>Manual</.link>
-        <.link href="#" class={["p-2 ml-10 text-lg", if(@selection.id != "", do: "text-ccBlue hover:underline", else: "text-ccGrey cursor-default")]} disabled={@selection.id == ""}>Brochure</.link>
-        <.link href="#" class={["p-2 ml-10 text-lg", if(@selection.id != "", do: "text-ccBlue hover:underline", else: "text-ccGrey cursor-default")]} disabled={@selection.id == ""}>Spec Sheet</.link>
-        <.link href="#" class={["p-2 ml-10 text-lg", if(@selection.id != "", do: "text-ccBlue hover:underline", else: "text-ccGrey cursor-default")]} disabled={@selection.id == ""}>Certificate of Conformance</.link>
+        <.link href={@selection.manual_url} target="_blank" class={["p-2 ml-10 text-lg", if(@selection.id != "" && @selection.manual_url, do: "text-ccBlue hover:underline", else: "text-ccGrey cursor-default pointer-events-none")]}>Manual</.link>
+        <.link href={@selection.brochure_url} target="_blank" class={["p-2 ml-10 text-lg", if(@selection.id != "" && @selection.brochure_url, do: "text-ccBlue hover:underline", else: "text-ccGrey cursor-default pointer-events-none")]}>Brochure</.link>
+        <.link href={@selection.spec_sheet_url} target="_blank" class={["p-2 ml-10 text-lg", if(@selection.id != "" && @selection.spec_sheet_url, do: "text-ccBlue hover:underline", else: "text-ccGrey cursor-default pointer-events-none")]}>Spec Sheet</.link>
+        <.link href={@selection.certificate_url} target="_blank" class={["p-2 ml-10 text-lg", if(@selection.id != "" && @selection.certificate_url, do: "text-ccBlue hover:underline", else: "text-ccGrey cursor-default pointer-events-none")]}>Certificate of Conformance</.link>
       </div>
       <div class="flex justify-between">
         <div class="flex flex-col w-3/5">

@@ -233,7 +233,11 @@ defmodule EhsWebapp.EquipmentOwnerships do
       :inactive_date        => "",
       :batch_number         => "",
       :status               => "",
-      :comments             => ""
+      :comments             => "",
+      :manual_url           => "",
+      :brochure_url         => "",
+      :spec_sheet_url       => "",
+      :certificate_url      => "",
     }
   end
   
@@ -260,7 +264,11 @@ defmodule EhsWebapp.EquipmentOwnerships do
         o.inactive_date,
         o.batch_number,
         o.status,
-        o.comments])
+        o.comments,
+        eq.manual_url,
+        eq.brochure_url,
+        eq.spec_sheet_url,
+        eq.certificate_url])
 
     res = Repo.one(query)
     %{
@@ -281,7 +289,11 @@ defmodule EhsWebapp.EquipmentOwnerships do
       :inactive_date        => Enum.at(res, 14),
       :batch_number         => Enum.at(res, 15),
       :status               => Enum.at(res, 16),
-      :comments             => Enum.at(res, 17)
+      :comments             => Enum.at(res, 17),
+      :manual_url           => Enum.at(res, 18),
+      :brochure_url         => Enum.at(res, 19),
+      :spec_sheet_url       => Enum.at(res, 20),
+      :certificate_url      => Enum.at(res, 21)
     } 
   end
 
