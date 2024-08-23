@@ -9,7 +9,7 @@ defmodule EhsWebappWeb.AdminPanelLive.CategoriesComponent do
     |> JS.hide(to: upd_id)
   end
 
-  def mount(socket) do
+  def mount(socket) do # TODO fix bug when no categories
     categories = Equipments.list_categories
     first_cat = List.first(categories)
     subcategories = Equipments.list_subcategories(first_cat.id)

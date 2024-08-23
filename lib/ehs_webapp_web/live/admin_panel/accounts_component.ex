@@ -57,7 +57,7 @@ defmodule EhsWebappWeb.AdminPanelLive.AccountsComponent do
           />
           <div class="relative pb-2">
             <.input type="text" label="Password" name="password" placeholder="Password" required field={@form[:password]} class="h-11" />
-            <.button type="button" phx-click="gen_rand_pwd" phx-target={@myself} class="absolute top-8 right-0 text-xs text-ccGrey-light bg-white hover:bg-ccLight h-11 border border-slate-300 rounded-none rounded-r-md">Gen</.button>
+            <.button type="button" phx-click="gen_rand_pwd" phx-target={@myself} class="absolute top-8 right-0 text-xs text-ccGrey-light bg-ccGrey hover:bg-ccGrey-light h-11 border border-none rounded-none rounded-r-md">Gen</.button>
           </div>
           <.input type="checkbox" label="Make Admin" name="admin" field={@form[:admin]}/>
           <.button value="register" class="bg-ccGreen hover:bg-ccGreen-dark mt-2">New Account</.button>
