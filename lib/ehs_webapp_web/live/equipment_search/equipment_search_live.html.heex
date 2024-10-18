@@ -84,7 +84,10 @@
                 <p class="toggleable font-normal"><%= @selection.brand %></p>
                 <p :if={@current_user.admin} class="toggleable font-normal hidden"><%= @selected_brand %></p>
               </td>
-              <td class="w-1/4"> <p class="font-bold ml-4">Inspection Interval:</p> </td>
+              <td class="w-1/4"> 
+                <p class="font-bold ml-4">Inspection Interval:</p> 
+                <p class="font-light text-sm ml-4">(In Months)</p>
+              </td>
               <td class="w-1/4"> 
                 <.input :if={@current_user.admin} phx-debounce="blur" class="toggleable h-8 hidden" type="text" name="inspection_interval" field={@ownerships_form[:inspection_interval]} placeholder="Inspection Interval" /> 
                 <p class="toggleable font-normal"><%= @selection.inspection_interval %></p>
