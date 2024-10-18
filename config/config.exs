@@ -12,7 +12,7 @@ config :ehs_webapp,
 
 # Configures the endpoint
 config :ehs_webapp, EhsWebappWeb.Endpoint,
-  url: [host: "localhost"],
+  url: [host: "calitrack-32qpw.ondigitalocean.app"],
   render_errors: [
     formats: [html: EhsWebappWeb.ErrorHTML, json: EhsWebappWeb.ErrorJSON],
     layout: false
