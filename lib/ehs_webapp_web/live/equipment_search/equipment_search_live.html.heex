@@ -93,7 +93,7 @@
             <tr>
               <td> <p class="font-bold ml-4 my-6">Part No.:</p> </td>
               <td> 
-                <.input :if={@current_user.admin} phx-debounce="blur" class="toggleable h-8 hidden" type="text" name="part_number" field={@ownerships_form[:part_number]} placeholder="Part Number*" required /> 
+                <.input :if={@current_user.admin} phx-debounce="blur" class="toggleable h-8 hidden" type="text" name="part_number" field={@ownerships_form[:part_number]} placeholder="Part Number" /> 
                 <p class="toggleable font-normal"><%= @selection.part_number %></p>
               </td>
               <td> <p class="font-bold ml-4">Last Inspection Date:</p> </td>
@@ -105,7 +105,7 @@
             <tr>
               <td> <p class="font-bold ml-4 my-6">Client:</p> </td>
               <td> 
-                <.select_input :if={@current_user.admin} id="client_company_select" class="toggleable h-8 hidden" name="client_company_id" field={@ownerships_form[:client_company_id]} placeholder="Employer Company*" required={true}
+                <.select_input :if={@current_user.admin} id="client_company_select" class="toggleable h-8 hidden" name="client_company_id" field={@ownerships_form[:client_company_id]} placeholder="Client Company*" required={true}
                   options={Enum.map(@client_companies, fn i -> {i.company_name, i.id} end)}
                 />
                 <p class="toggleable font-normal"><%= @selection.client %></p>

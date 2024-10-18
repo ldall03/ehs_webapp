@@ -31,7 +31,7 @@ defmodule EhsWebapp.EquipmentOwnerships.EquipmentOwnership do
   def changeset(equipment_ownership, attrs) do
     equipment_ownership
     |> cast(attrs, [:serial_number, :part_number, :batch_number, :mfgdt, :shelf_date, :inspection_interval, :delivery_date, :service_date, :last_inspection_date, :next_inspection_date, :department, :current_owner, :owner_id, :inactive_date, :equipment_id, :client_company_id, :status, :comments])
-    |> validate_required([:serial_number, :part_number, :equipment_id, :client_company_id])
+    |> validate_required([:serial_number, :equipment_id, :client_company_id])
     |> unique_constraint(:part_number)
     |> unique_constraint(:serial_number)
   end
