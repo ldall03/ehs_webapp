@@ -5,7 +5,6 @@ defmodule EhsWebappWeb.AdminPanelLive.AccountsComponent do
   alias EhsWebapp.ClientCompanies
 
   def mount(socket) do
-    IO.inspect(socket.assigns)
     {:ok, socket 
       |> assign(
         form: to_form(%{}),

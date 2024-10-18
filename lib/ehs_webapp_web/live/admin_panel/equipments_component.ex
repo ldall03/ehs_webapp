@@ -2,6 +2,7 @@ defmodule EhsWebappWeb.AdminPanelLive.EquipmentsComponent do
   use EhsWebappWeb, :live_component
   
   alias EhsWebapp.{Equipments, Equipments.Equipment}
+  alias EhsWebappWeb.SimpleS3Upload
 
   def toggle_file_upload(js \\ %JS{}) do
     js
@@ -15,12 +16,11 @@ defmodule EhsWebappWeb.AdminPanelLive.EquipmentsComponent do
       form: to_form(Equipments.change_equipment(%Equipment{})),
     )
     {:ok, socket 
-      |> allow_upload(:files, accept: ~w(.pdf), max_file_size: 1_000_000, auto_upload: true)
+      |> allow_upload(:files, accept: ~w(.pdf), max_file_size: 2_000_000, auto_upload: true, external: &presign_upload/2)
       |> assign(form: to_form(%{}), selection: %Equipment{}, file_prefix: "manual")
       |> stream(:equipments, 
         Equipments.list_equipments() |> Enum.map(fn i -> 
           %{id: i.id,
-            part_number: i.part_number,
             equipment: i.equipment,
             brand: i.brand,
             selected: false}
@@ -35,18 +35,21 @@ defmodule EhsWebappWeb.AdminPanelLive.EquipmentsComponent do
       <div class="font-bold p-8 text-xl">Equipments</div>
       <div class="bg-white m-5 py-5 rounded-lg border-ccGrey">
         <div class="flex justify-between py-4">
+          <p class="w-full text-center font-bold">ID</p>
           <p class="w-full text-center font-bold">Name</p>
-          <p class="w-full text-center font-bold">Part Number</p>
           <p class="w-full text-center font-bold">Brand</p>
         </div>
         <div id="equipments" phx-update="stream" class="h-96 overflow-scroll">
           <%= for {dom_id, equipment} <- @streams.equipments do %>
             <div class={["flex justify-between py-3 m-1 rounded select-none", equipment.selected && "bg-ccBlue text-white"]} phx-value-id={equipment.id} phx-click="select" phx-target={@myself} id={dom_id}>
+              <p class="w-full text-center cursor-default"><%= equipment.id %></p>
               <p class="w-full text-center cursor-default"><%= equipment.equipment %></p>
-              <p class="w-full text-center cursor-default"><%= equipment.part_number %></p>
               <p class="w-full text-center cursor-default"><%= equipment.brand %></p>
             </div>
           <% end %>
+        </div>
+        <div :if={@current_user.superuser} class="text-right">
+          <.button phx-click="delete_equipment" phx-target={@myself} data-confirm="Are you sure you want to delete the equipment This is irreversible." class="mx-5 mt-5 bg-ccRed hover:bg-ccRed-dark disabled:bg-ccGrey disabled:hover:bg-ccGrey disabled:active:text-white" disabled={!@selection.id}>Delete Equipment</.button>
         </div>
       </div>
       <div class="flex">
@@ -54,7 +57,6 @@ defmodule EhsWebappWeb.AdminPanelLive.EquipmentsComponent do
           <.form id="equipment_form" for={@form} phx-submit="save" phx-target={@myself} autocomplete="off" class="w-full">
             <.input type="hidden" name="equipment_id" field={@form[:id]} />
             <.input type="text" phx-debounce="blur" label="Equipment Name*" placeholder="Equipment Name..." name="equipment" field={@form[:equipment]} required />
-            <.input type="text" phx-debounce="blur" label="Part No.*" placeholder="Part Number..." name="part_number" field={@form[:part_number]} required />
             <.live_component module={EhsWebappWeb.CategorySelectComponent} id="category_select" parent_form={@form} required={true} />
             <.input class="mb-4" type="text" phx-debounce="blur" label="Brand*" placeholder="Brand..." name="brand" field={@form[:brand]} required />
             <.button type="submit" class={if @selection.id, do: "bg-ccBlue", else: "bg-ccGreen hover:bg-ccGreen-dark"}><%= if @selection.id, do: "Update Equipment", else: "New Equipment" %></.button>
@@ -159,6 +161,11 @@ defmodule EhsWebappWeb.AdminPanelLive.EquipmentsComponent do
     end
   end
 
+  def handle_event("delete_equipment", _params, socket) do 
+    Equipments.delete_equipment(Equipments.get_equipment!(socket.assigns.selection.id))
+    {:noreply, socket |> stream_delete(:equipments, socket.assigns.selection) |> assign(selection: %Equipment{})}
+  end
+
   defp send_flash(socket, type, message) do
     send(self(), {:put_flash, type, message})
     socket
@@ -226,5 +233,9 @@ defmodule EhsWebappWeb.AdminPanelLive.EquipmentsComponent do
     else
       "#{Float.round(size / 1000, 1)} Kb"
     end
+  end
+
+  defp presign_upload(entry, socket) do
+    {:ok, SimpleS3Upload.meta(entry, socket.uploads), socket}
   end
 end

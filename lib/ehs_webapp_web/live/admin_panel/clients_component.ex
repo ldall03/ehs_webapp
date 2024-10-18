@@ -42,6 +42,9 @@ defmodule EhsWebappWeb.AdminPanelLive.ClientsComponent do
             </div>
           <% end %>
         </div>
+        <div :if={@current_user.superuser} class="text-right">
+          <.button phx-click="delete_client" phx-target={@myself} data-confirm="Are you sure you want to delete the client This is irreversible." class="mx-5 mt-5 bg-ccRed hover:bg-ccRed-dark disabled:bg-ccGrey disabled:hover:bg-ccGrey disabled:active:text-white" disabled={!@selection.id}>Delete Client</.button>
+        </div>
       </div>
       <div class="bg-white m-5 p-5 rounded-lg border-ccGrey">
         <.form for={@form} phx-submit="save" phx-target={@myself} autocomplete="off">
@@ -89,6 +92,11 @@ defmodule EhsWebappWeb.AdminPanelLive.ClientsComponent do
         ) 
       }
     end
+  end
+
+  def handle_event("delete_client", _params, socket) do 
+    ClientCompanies.delete_client_company(ClientCompanies.get_client_company!(socket.assigns.selection.id))
+    {:noreply, socket |> stream_delete(:clients, socket.assigns.selection) |> assign(selection: %ClientCompany{})}
   end
 
   defp send_flash(socket, type, message) do

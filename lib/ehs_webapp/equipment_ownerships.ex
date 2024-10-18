@@ -54,8 +54,13 @@ defmodule EhsWebapp.EquipmentOwnerships do
   """
   def create_equipment_ownership(%User{} = user, attrs \\ %{}) do
     if user.admin do
+      next_inspection_date = case Date.from_iso8601(attrs["last_inspection_date"]) do
+        {:ok, date} -> Date.to_iso8601(Date.add(date, 30 * attrs["inspection_interval"]))
+        {:error, _e} -> nil
+      end
+      
       %EquipmentOwnership{}
-      |> EquipmentOwnership.changeset(attrs)
+      |> EquipmentOwnership.changeset(Map.put(attrs, "next_inspection_date", next_inspection_date))
       |> Repo.insert()
     else
       {:error, :unauthorized} 
@@ -156,11 +161,11 @@ defmodule EhsWebapp.EquipmentOwnerships do
   end
 
   def equipment_search(params, user) do
-    equipment_pattern = "%#{params["equipment"]}%"
-    brand_pattern = "%#{params["brand"]}%"
-    client_pattern = "%#{params["company_name"]}%"
-    department_pattern = "%#{params["department"]}%"
-    owner_pattern = "%#{params["current_owner_id"]}%"
+    equipment_pattern = String.downcase "%#{params["equipment"]}%"
+    brand_pattern = String.downcase "%#{params["brand"]}%"
+    client_pattern = String.downcase "%#{params["company_name"]}%"
+    department_pattern = String.downcase "%#{params["department"]}%"
+    owner_pattern = String.downcase "%#{params["current_owner_id"]}%"
 
     query = Equipment
       |> join(:inner, [eq], sub in Subcategory, on: eq.subcategory_id == sub.id)
@@ -169,25 +174,25 @@ defmodule EhsWebapp.EquipmentOwnerships do
       |> join(:inner, [eq, sub, cat, o], com in ClientCompany, on: o.client_company_id == com.id)
 
     query = if cmp_or_nil(params["equipment"]), do: query
-      |> where([eq], like(eq.equipment, ^equipment_pattern)), else: query
+      |> where([eq], like(fragment("lower(?)", eq.equipment), ^equipment_pattern)), else: query
     query = if cmp_or_nil(params["category_id"]), do: query
       |> where([eq, sub, cat], cat.id == ^params["category_id"]), else: query
     query = if cmp_or_nil(params["subcategory_id"]), do: query
       |> where([eq, sub], sub.id == ^params["subcategory_id"]), else: query
     query = if cmp_or_nil(params["brand"]), do: query
-      |> where([eq], like(eq.brand, ^brand_pattern)), else: query
+      |> where([eq], like(fragment("lower(?)", eq.brand), ^brand_pattern)), else: query
     query = if cmp_or_nil(params["part_number"]), do: query
-      |> where([eq], eq.part_number == ^params["part_number"]), else: query
+      |> where([eq, sub, cat, o], o.part_number == ^params["part_number"]), else: query
     query = if cmp_or_nil(params["batch_number"]), do: query
       |> where([eq, sub, cat, o], o.batch_number == ^params["batch_number"]), else: query
     query = if cmp_or_nil(params["serial_number"]), do: query
       |> where([eq, sub, cat, o], o.serial_number == ^params["serial_number"]), else: query
     query = if cmp_or_nil(params["company_name"]), do: query
-      |> where([eq, sub, cat, o, com], like(com.company_name, ^client_pattern)), else: query
+      |> where([eq, sub, cat, o, com], like(fragment("lower(?)", com.company_name), ^client_pattern)), else: query
     query = if cmp_or_nil(params["department"]), do: query
-      |> where([eq, sub, cat, o], like(o.department, ^department_pattern)), else: query
+      |> where([eq, sub, cat, o], like(fragment("lower(?)", o.department), ^department_pattern)), else: query
     query = if cmp_or_nil(params["current_owner"]), do: query
-      |> where([eq, sub, cat, o], like(o.current_owner, ^owner_pattern)), else: query
+      |> where([eq, sub, cat, o], like(fragment("lower(?)", o.current_owner), ^owner_pattern)), else: query
     query = if cmp_or_nil(params["current_owner_id"]), do: query
       |> where([eq, sub, cat, o], o.owner_id == ^params["current_owner_id"]), else: query
 
@@ -250,7 +255,7 @@ defmodule EhsWebapp.EquipmentOwnerships do
         [o.id,
         eq.equipment, 
         eq.brand,
-        eq.part_number,
+        o.part_number,
         o.serial_number, 
         o.mfgdt,
         com.company_name,

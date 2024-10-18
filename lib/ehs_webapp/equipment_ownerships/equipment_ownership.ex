@@ -4,8 +4,9 @@ defmodule EhsWebapp.EquipmentOwnerships.EquipmentOwnership do
 
   schema "equipment_ownerships" do
     field :serial_number, :string
+    field :part_number, :string
     field :batch_number, :integer
-    field :mfgdt, :string
+    field :mfgdt, :date
     field :shelf_date, :date
     field :inspection_interval, :integer
     field :delivery_date, :date
@@ -29,7 +30,9 @@ defmodule EhsWebapp.EquipmentOwnerships.EquipmentOwnership do
   @doc false
   def changeset(equipment_ownership, attrs) do
     equipment_ownership
-    |> cast(attrs, [:serial_number, :batch_number, :mfgdt, :shelf_date, :inspection_interval, :delivery_date, :service_date, :last_inspection_date, :next_inspection_date, :department, :current_owner, :owner_id, :inactive_date, :equipment_id, :client_company_id, :status, :comments])
-    |> validate_required([:serial_number, :batch_number, :mfgdt, :equipment_id, :client_company_id])
+    |> cast(attrs, [:serial_number, :part_number, :batch_number, :mfgdt, :shelf_date, :inspection_interval, :delivery_date, :service_date, :last_inspection_date, :next_inspection_date, :department, :current_owner, :owner_id, :inactive_date, :equipment_id, :client_company_id, :status, :comments])
+    |> validate_required([:serial_number, :part_number, :equipment_id, :client_company_id])
+    |> unique_constraint(:part_number)
+    |> unique_constraint(:serial_number)
   end
 end

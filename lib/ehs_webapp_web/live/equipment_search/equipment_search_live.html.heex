@@ -1,7 +1,7 @@
 <div>
   <div class="flex w-full">
     <div class="border-x border-ccDark w-1/4">
-      <div class="text-lg my-5 w-full text-center">Search By:</div>
+      <div class="text-lg my-5 w-full text-center">Home Dashboard:</div>
       <.form id="search_form" for={@search_form} autocomplete="off" phx-submit="search" phx-change="search_change">
         <div class="h-128 overflow-scroll px-10">
           <.input type="text" class="search_input" phx-debounce="blur" label="Equipment" name="equipment" field={@search_form[:equipment]} />
@@ -65,9 +65,8 @@
             <tr>
               <td class="w-1/4"> <p class="font-bold ml-4 my-6">Equipment:</p> </td>
               <td class="w-1/4"> 
-                <.select_input :if={@current_user.admin} id="equipment_select" class="toggleable h-8 hidden" name="equipment" placeholder="Equipment" required={true} 
-                  value={@ownerships_form.params["equipment"] || @selected_equipment_name}
-                  options={@equipments |> Enum.filter(fn i -> @selected_brand == "" || i.brand == @selected_brand end) |> Enum.map(fn i -> i.equipment end) |> Enum.uniq()}
+                <.select_input :if={@current_user.admin} id="equipment_select" class="toggleable h-8 hidden" name="equipment_id" field={@ownerships_form[:equipment_id]} placeholder="Equipment" required={true} 
+                  options={@equipments |> Enum.map(fn i -> {i.equipment, i.id} end) |> Enum.uniq()}
                 />
                 <p class="toggleable font-normal"><%= @selection.equipment %></p>
               </td>
@@ -82,11 +81,8 @@
             <tr>
               <td> <p class="font-bold ml-4 my-6">Brand:</p> </td>
               <td>
-                <.select_input :if={@current_user.admin} id="brand_select" class="toggleable h-8 hidden" name="brand" placeholder="Brand" 
-                  value={@ownerships_form.params["brand"] || @selected_brand}
-                  options={@equipments |> Enum.filter(fn i -> @selected_equipment_name == "" || i.equipment == @selected_equipment_name end) |> Enum.map(fn i -> i.brand end) |> Enum.uniq()}
-                />
                 <p class="toggleable font-normal"><%= @selection.brand %></p>
+                <p :if={@current_user.admin} class="toggleable font-normal hidden"><%= @selected_brand %></p>
               </td>
               <td class="w-1/4"> <p class="font-bold ml-4">Inspection Interval:</p> </td>
               <td class="w-1/4"> 
@@ -97,11 +93,7 @@
             <tr>
               <td> <p class="font-bold ml-4 my-6">Part No.:</p> </td>
               <td> 
-                <.select_input :if={@current_user.admin} id="part_number_select" class="toggleable h-8 hidden" name="equipment_id" field={@ownerships_form[:equipment_id]} placeholder="Part Number*" 
-                  options={@equipments
-                  |> Enum.filter(fn i -> (@selected_equipment_name == "" || @selected_equipment_name == i.equipment) && (@selected_brand == "" || @selected_brand == i.brand) end)
-                  |> Enum.map(fn i -> {i.part_number, i.id} end)}
-                />
+                <.input :if={@current_user.admin} phx-debounce="blur" class="toggleable h-8 hidden" type="text" name="part_number" field={@ownerships_form[:part_number]} placeholder="Part Number*" required /> 
                 <p class="toggleable font-normal"><%= @selection.part_number %></p>
               </td>
               <td> <p class="font-bold ml-4">Last Inspection Date:</p> </td>
@@ -113,7 +105,7 @@
             <tr>
               <td> <p class="font-bold ml-4 my-6">Client:</p> </td>
               <td> 
-                <.select_input :if={@current_user.admin} id="client_company_select" class="toggleable h-8 hidden" name="client_company_id" field={@ownerships_form[:client_company_id]} placeholder="Employer Company" required={true}
+                <.select_input :if={@current_user.admin} id="client_company_select" class="toggleable h-8 hidden" name="client_company_id" field={@ownerships_form[:client_company_id]} placeholder="Employer Company*" required={true}
                   options={Enum.map(@client_companies, fn i -> {i.company_name, i.id} end)}
                 />
                 <p class="toggleable font-normal"><%= @selection.client %></p>
@@ -127,7 +119,7 @@
             <tr>
               <td> <p class="font-bold ml-4 my-6">Batch No.:</p> </td>
               <td> 
-                <.input :if={@current_user.admin} phx-debounce="blur" class="toggleable h-8 hidden" type="text" name="batch_number" field={@ownerships_form[:batch_number]} placeholder="Batch Number*" required /> 
+                <.input :if={@current_user.admin} phx-debounce="blur" class="toggleable h-8 hidden" type="text" name="batch_number" field={@ownerships_form[:batch_number]} placeholder="Batch Number" /> 
                 <p class="toggleable font-normal"><%= @selection.batch_number %></p>
               </td>
               <td> <p class="font-bold ml-4">Inactive Date:</p> </td>
@@ -151,12 +143,12 @@
             <tr>
               <td> <p class="font-bold ml-4 my-6">MFGDT:</p> </td>
               <td> 
-                <.input :if={@current_user.admin} phx-debounce="blur" class="toggleable h-8 hidden" type="text" name="mfgdt" field={@ownerships_form[:mfgdt]} placeholder="mfgdt*" required /> 
+                <.input :if={@current_user.admin} phx-debounce="blur" class="toggleable h-8 hidden" type="date" name="mfgdt" field={@ownerships_form[:mfgdt]} placeholder="mfgdt*" /> 
                 <p class="toggleable font-normal"><%= @selection.mfgdt %></p>
               </td>
               <td> <p class="font-bold ml-4">Equipment Owner:</p> </td>
               <td> 
-              <.input phx-debounce="blur" class="toggleable-noadmin h-8 hidden" type="text" name="current_owner" field={@ownerships_form[:current_owner]} placeholder="Quipment Owner" /> 
+              <.input phx-debounce="blur" class="toggleable-noadmin h-8 hidden" type="text" name="current_owner" field={@ownerships_form[:current_owner]} placeholder="Equipment Owner" /> 
               <p class="toggleable-noadmin font-normal"><%= @selection.current_owner %></p>
               </td>
             </tr>
