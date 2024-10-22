@@ -72,8 +72,8 @@ defmodule EhsWebapp.SimpleS3Upload do
   defp config do
     %{
       region: region(),
-      access_key_id: Application.fetch_env!(:ehs_webapp, :access_key_id),
-      secret_access_key: Application.fetch_env!(:ehs_webapp, :secret_access_key)
+      access_key_id: Application.fetch_env!(:ehs_webapp, :access_key_id) || System.get_env("ACCESS_KEY_ID"),
+      secret_access_key: Application.fetch_env!(:ehs_webapp, :secret_access_key) || System.get_env("SECRET_ACCESS_KEY")
     }
   end
 
