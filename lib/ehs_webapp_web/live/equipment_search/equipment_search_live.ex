@@ -6,6 +6,8 @@ defmodule EhsWebappWeb.EquipmentSearchLive do
   alias EhsWebapp.EquipmentOwnerships
   alias EhsWebapp.ClientCompanies
 
+  alias EhsWebapp.SimpleS3Upload
+
   def toggle_form_admin(js \\ %JS{}, exec \\ true) do
     if exec do 
       js
@@ -62,7 +64,7 @@ defmodule EhsWebappWeb.EquipmentSearchLive do
       |> stream(:data, [])
       |> stream(:calibrations, [])
       |> stream(:tech_reports, [])
-      |> allow_upload(:files, accept: ~w(.pdf), max_file_size: 2_000_000, auto_upload: true)
+      |> allow_upload(:files, accept: ~w(.pdf), max_file_size: 5_000_000, auto_upload: true, external: &presign_upload/2)
     }
   end
 
@@ -189,12 +191,19 @@ defmodule EhsWebappWeb.EquipmentSearchLive do
 
   def handle_event("upload", %{"file_prefix" => "calibration"}, socket) do
     params = %{
-      "url"                     => "/uploads/calibrations/#{get_file_name(socket, "cal")}",
-      "equipment_ownership_id"  => socket.assigns.selection.id
+      "display_name"            => get_file_name(socket, "cal"),
+      "equipment_ownership_id"  => socket.assigns.selection.id,
+      "url" => nil
     }
 
+    params = put_file_url(socket, params)
+
     case EquipmentOwnerships.create_calibration(socket.assigns.current_user, params) do
-      {:ok, cal}              -> consume_uploaded_file(socket, cal)
+      {:ok, _} ->
+        {:noreply, socket 
+          |> stream(:calibrations, EquipmentOwnerships.list_calibrations_by(socket.assigns.selection.id), at: 0)
+          |> put_flash(:info, "Calibration file uploaded.")
+        }
       {:error, :unauthorized} -> {:noreply, :error, "You are not authorized to upload files for this equipment."}
       _                       -> {:noreply, put_flash(socket, :error, "Something went wrong")}
     end
@@ -202,12 +211,19 @@ defmodule EhsWebappWeb.EquipmentSearchLive do
 
   def handle_event("upload", %{"file_prefix" => "report"}, socket) do
     params = %{
-      "url"                     => "/uploads/tech_reports/#{get_file_name(socket, "rep")}",
-      "equipment_ownership_id"  => socket.assigns.selection.id
+      "display_name"            => get_file_name(socket, "rep"),
+      "equipment_ownership_id"  => socket.assigns.selection.id,
+      "url" => nil
     }
 
+    params = put_file_url(socket, params)
+
     case EquipmentOwnerships.create_technical_report(socket.assigns.current_user, params) do
-      {:ok, rep}              -> consume_uploaded_file(socket, rep)
+      {:ok, _} ->
+        {:noreply, socket 
+          |> stream(:tech_reports, EquipmentOwnerships.list_technical_reports_by(socket.assigns.selection.id), at: 0)
+          |> put_flash(:info, "Technical Report file uploaded.")
+        }
       {:error, :unauthorized} -> {:noreply, :error, "You are not authorized to upload files for this equipment."}
       _                       -> {:noreply, put_flash(socket, :error, "Something went wrong")}
     end
@@ -257,6 +273,7 @@ defmodule EhsWebappWeb.EquipmentSearchLive do
   defp error_to_string(:too_large), do: "File is too large"
   defp error_to_string(:not_accepted), do: "Only .pdf files are allowed"
   defp error_to_string(:too_many_files), do: "You may only choose one file"
+  defp error_to_string(error), do: "[ERROR]: #{Atom.to_string(error)}"
   defp format_file_size(size) do
     if size > 1_000_000 do
       "#{Float.round(size / 1_000_000, 2)} Mb"
@@ -279,29 +296,15 @@ defmodule EhsWebappWeb.EquipmentSearchLive do
     <> ".pdf"
   end
 
-  defp consume_uploaded_file(socket, %Calibration{} = calibration) do
-    consume_uploaded_entries(socket, :files, fn meta, entry ->
-      dest = Path.join(Application.app_dir(:ehs_webapp, "priv/static"), calibration.url)
-      File.cp!(meta.path, dest)
-      {:ok, dest}
+  defp put_file_url(socket, params) do
+    uploaded_file_urls = consume_uploaded_entries(socket, :files, fn meta, entry ->
+      {:ok, SimpleS3Upload.entry_url(entry)}
     end)
-    {:noreply, 
-      socket 
-      |> stream(:calibrations, EquipmentOwnerships.list_calibrations_by(socket.assigns.selection.id), at: 0)
-      |> put_flash(:info, "Calibration file uploaded.")
-    }
+
+    %{params | "url" => List.first(uploaded_file_urls)}
   end
 
-  defp consume_uploaded_file(socket, %TechnicalReport{} = report) do
-    consume_uploaded_entries(socket, :files, fn meta, entry ->
-      dest = Path.join(Application.app_dir(:ehs_webapp, "priv/static"), report.url)
-      File.cp!(meta.path, dest)
-      {:ok, dest}
-    end)
-    {:noreply, 
-      socket 
-      |> stream(:tech_reports, EquipmentOwnerships.list_technical_reports_by(socket.assigns.selection.id), at: 0)
-      |> put_flash(:info, "Technical report file uploaded.")
-    }
+  defp presign_upload(entry, %{assigns: %{uploads: uploads}} = socket) do
+    {:ok, SimpleS3Upload.meta(entry, uploads), socket}
   end
 end

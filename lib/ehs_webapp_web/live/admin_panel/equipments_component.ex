@@ -2,7 +2,7 @@ defmodule EhsWebappWeb.AdminPanelLive.EquipmentsComponent do
   use EhsWebappWeb, :live_component
   
   alias EhsWebapp.{Equipments, Equipments.Equipment}
-  alias EhsWebappWeb.SimpleS3Upload
+  alias EhsWebapp.SimpleS3Upload
 
   def toggle_file_upload(js \\ %JS{}) do
     js
@@ -16,7 +16,7 @@ defmodule EhsWebappWeb.AdminPanelLive.EquipmentsComponent do
       form: to_form(Equipments.change_equipment(%Equipment{})),
     )
     {:ok, socket 
-      |> allow_upload(:files, accept: ~w(.pdf), max_file_size: 2_000_000, auto_upload: true, external: &presign_upload/2)
+      |> allow_upload(:files, accept: ~w(.pdf), max_file_size: 10_000_000, auto_upload: true, external: &presign_upload/2)
       |> assign(form: to_form(%{}), selection: %Equipment{}, file_prefix: "manual")
       |> stream(:equipments, 
         Equipments.list_equipments() |> Enum.map(fn i -> 
@@ -53,7 +53,7 @@ defmodule EhsWebappWeb.AdminPanelLive.EquipmentsComponent do
         </div>
       </div>
       <div class="flex">
-        <div class="w-3/4 flex bg-white mx-5 p-5 rounded-lg border-ccGrey">
+        <div class="w-3/4 flex bg-white mx-5 mb-5 p-5 rounded-lg border-ccGrey">
           <.form id="equipment_form" for={@form} phx-submit="save" phx-target={@myself} autocomplete="off" class="w-full">
             <.input type="hidden" name="equipment_id" field={@form[:id]} />
             <.input type="text" phx-debounce="blur" label="Equipment Name*" placeholder="Equipment Name..." name="equipment" field={@form[:equipment]} required />
@@ -62,7 +62,7 @@ defmodule EhsWebappWeb.AdminPanelLive.EquipmentsComponent do
             <.button type="submit" class={if @selection.id, do: "bg-ccBlue", else: "bg-ccGreen hover:bg-ccGreen-dark"}><%= if @selection.id, do: "Update Equipment", else: "New Equipment" %></.button>
           </.form>
         </div>
-        <div class="w-1/4 bg-white mr-5 p-10 rounded-lg border-ccGrey flex flex-col">
+        <div class="w-1/4 bg-white mr-5 mb-5 p-10 rounded-lg border-ccGrey flex flex-col">
           <.form id="file_type_form" phx-change="set_file_prefix" phx-target={@myself}>
             <.select_button id="file_type" 
               click_action={toggle_file_upload()} 
@@ -184,7 +184,6 @@ defmodule EhsWebappWeb.AdminPanelLive.EquipmentsComponent do
   end
 
   defp update_equipment(socket, params) do
-    IO.inspect(params)
     selected = Equipments.get_equipment!(socket.assigns.selection.id)
     case Equipments.update_equipment(selected, params) do
       {:ok, equipment} -> {:noreply, socket 
@@ -204,15 +203,7 @@ defmodule EhsWebappWeb.AdminPanelLive.EquipmentsComponent do
   end
 
   def handle_event("upload", %{"file_prefix" => file_type}, socket) do
-    [url] = consume_uploaded_entries(socket, :files, fn meta, entry ->
-      url = "/uploads/equipment_files/#{entry.uuid}.pdf"
-      dest = Path.join(Application.app_dir(:ehs_webapp, "priv/static"), url)
-      var = case File.cp!(meta.path, dest) do
-        :ok -> {:ok, url}
-        _   -> {:error, url}
-      end
-    end)
-
+    url = get_file_url(socket)
     update_equipment(socket, %{"#{socket.assigns.file_prefix}_url" => url})
   end
 
@@ -235,7 +226,15 @@ defmodule EhsWebappWeb.AdminPanelLive.EquipmentsComponent do
     end
   end
 
-  defp presign_upload(entry, socket) do
-    {:ok, SimpleS3Upload.meta(entry, socket.uploads), socket}
+  defp get_file_url(socket) do
+    uploaded_file_urls = consume_uploaded_entries(socket, :files, fn meta, entry ->
+      {:ok, SimpleS3Upload.entry_url(entry)}
+    end)
+
+    List.first(uploaded_file_urls)
+  end
+
+  defp presign_upload(entry, %{assigns: %{uploads: uploads}} = socket) do
+    {:ok, SimpleS3Upload.meta(entry, uploads), socket}
   end
 end

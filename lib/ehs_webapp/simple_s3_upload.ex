@@ -1,4 +1,4 @@
-defmodule EhsWebappWeb.SimpleS3Upload do
+defmodule EhsWebapp.SimpleS3Upload do
   @moduledoc """
   Dependency-free S3 Form Upload using HTTP POST sigv4
   https://docs.aws.amazon.com/AmazonS3/latest/API/sigv4-post-example.html
@@ -72,8 +72,8 @@ defmodule EhsWebappWeb.SimpleS3Upload do
   defp config do
     %{
       region: region(),
-      access_key_id: Application.fetch_env!(:liveview_mastery, :access_key_id),
-      secret_access_key: Application.fetch_env!(:liveview_mastery, :secret_access_key)
+      access_key_id: Application.fetch_env!(:ehs_webapp, :access_key_id),
+      secret_access_key: Application.fetch_env!(:ehs_webapp, :secret_access_key)
     }
   end
 
@@ -84,7 +84,7 @@ defmodule EhsWebappWeb.SimpleS3Upload do
       sign_form_upload(
         key: s3_filepath,
         content_type: entry.client_type,
-        max_file_size: uploads.photo.max_file_size,
+        max_file_size: uploads.files.max_file_size,
         expires_in: :timer.hours(1)
       )
 
@@ -97,11 +97,11 @@ defmodule EhsWebappWeb.SimpleS3Upload do
   end
 
   def bucket do
-    Application.fetch_env!(:liveview_mastery, :bucket)
+    Application.fetch_env!(:ehs_webapp, :bucket)
   end
 
   def region do
-    Application.fetch_env!(:liveview_mastery, :region)
+    Application.fetch_env!(:ehs_webapp, :region)
   end
 
   def s3_filepath(entry) do

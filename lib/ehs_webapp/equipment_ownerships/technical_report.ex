@@ -3,6 +3,7 @@ defmodule EhsWebapp.EquipmentOwnerships.TechnicalReport do
   import Ecto.Changeset
 
   schema "technical_reports" do
+    field :display_name, :string
     field :url, :string
     belongs_to :equipment_ownership, EhsWebapp.EquipmentOwnerships.EquipmentOwnership
 
@@ -12,7 +13,7 @@ defmodule EhsWebapp.EquipmentOwnerships.TechnicalReport do
   @doc false
   def changeset(technical_report, attrs) do
     technical_report
-    |> cast(attrs, [:url, :equipment_ownership_id])
-    |> validate_required([:url, :equipment_ownership_id])
+    |> cast(attrs, [:display_name, :url, :equipment_ownership_id])
+    |> validate_required([:display_name, :url, :equipment_ownership_id])
   end
 end

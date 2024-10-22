@@ -10,6 +10,10 @@ import Config
 config :ehs_webapp,
   ecto_repos: [EhsWebapp.Repo]
 
+config :ehs_webapp,
+  bucket: "calitrak",
+  region: "us-east-2"
+
 # Configures the endpoint
 config :ehs_webapp, EhsWebappWeb.Endpoint,
   url: [host: "calitrack-32qpw.ondigitalocean.app"],
