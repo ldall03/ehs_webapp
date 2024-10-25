@@ -1,15 +1,18 @@
 <header class="flex justify-between item-center px-6 py-3 bg-ccDark text-white">
   <div class="flex relative">
     <.link href={~p"/"}>
-      <img src="/images/logo.png" alt="Logo"/>
+      <div class="flex">
+        <img src="/images/logo.jpg" alt="Logo" class="h-12"/>
+        <p class="font-bold p-4">CALiTrak<sup class="text-xs font-normal">TM</sup></p>
+      </div>
     </.link>
   </div>
   <div class="flex relative">
     <%= if @current_user do %>
-      <.link href={~p"/users/settings"} class="px-3 hover:underline">Signed in as <%= @current_user.email %></.link>
-      <.link href={~p"/users/log_out"} method="delete" class="px-3 hover:undelrine">Sign Out</.link>
+      <.link href={~p"/users/settings"} class="px-3 py-3 hover:underline">Signed in as <%= @current_user.email %></.link>
+      <.link href={~p"/users/log_out"} method="delete" class="px-3 py-3 hover:undelrine">Sign Out</.link>
     <% else %>
-      <.link href={~p"/users/log_in"} class="px-3 hover:underline">Login</.link>
+      <.link href={~p"/users/log_in"} class="px-3 py-3 hover:underline">Login</.link>
     <% end %>
   </div>
 </header>

@@ -6,4 +6,8 @@ defmodule EhsWebappWeb.PageController do
     # so skip the default app layout.
     render(conn, :home)
   end
+
+  def contact_us(conn, _params) do
+    render(conn, :contact_us)
+  end
 end

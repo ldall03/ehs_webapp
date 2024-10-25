@@ -21,6 +21,7 @@ defmodule EhsWebappWeb.Router do
     pipe_through :browser
 
     get "/", PageController, :home
+    get "/contact_us", PageController, :contact_us
   end
 
   # Other scopes may use custom stacks.
