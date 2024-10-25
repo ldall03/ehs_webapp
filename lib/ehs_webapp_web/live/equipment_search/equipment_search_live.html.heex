@@ -37,6 +37,9 @@
         <div class="text-lg m-5 w-1/3 flex justify-center">
           <%= if @current_user.admin, do: "Client", else: "Current Owner" %>
         </div>
+        <div class="text-lg m-5 w-1/3 flex justify-center">
+          Next Inspection Date
+        </div>
       </div>
       <div id="data-display" class="w-full" phx-update="stream">
         <%= for {dom_id, item} <- @streams.data do %>
@@ -51,6 +54,9 @@
             </div>
             <div class="m-5 w-1/3 flex justify-center">
           <%= if @current_user.admin, do: item.client, else: item.current_owner %>
+            </div>
+            <div class={["m-5 w-1/3 flex justify-center", (item.next_inspection_date && Date.compare(Date.utc_today(), item.next_inspection_date) == :lt) || "text-ccRed"]}>
+              <%= item.next_inspection_date %>
             </div>
           </div>
         <% end %>

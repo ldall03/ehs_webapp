@@ -105,10 +105,10 @@ defmodule EhsWebappWeb.EquipmentSearchLive do
     else
       selection = EquipmentOwnerships.equipment_search_by(params["item_id"])
       deselect = socket.assigns.selection
-        |> Map.take([:id, :equipment, :serial_number, :client, :current_owner])
+        |> Map.take([:id, :equipment, :serial_number, :client, :current_owner, :next_inspection_date])
         |> Map.put(:selected, false)
       select = selection
-        |> Map.take([:id, :equipment, :serial_number, :client, :current_owner])
+        |> Map.take([:id, :equipment, :serial_number, :client, :current_owner, :next_inspection_date])
         |> Map.put(:selected, true)
 
       {:noreply, 
@@ -243,7 +243,7 @@ defmodule EhsWebappWeb.EquipmentSearchLive do
 
     selection = EquipmentOwnerships.equipment_search_by(socket.assigns.selection[:id])
     select = selection
-      |> Map.take([:id, :equipment, :serial_number, :client, :current_owner])
+      |> Map.take([:id, :equipment, :serial_number, :client, :current_owner, :next_inspection_date])
       |> Map.put(:selected, true)
 
     socket
@@ -251,7 +251,7 @@ defmodule EhsWebappWeb.EquipmentSearchLive do
     |> stream_insert(:data, select)
   end
 
-  defp create_ownership(params, socket) do
+  defp create_ownership(params, socket) do # TODO: refactor using return of create_equipment_ownership
     EquipmentOwnerships.create_equipment_ownership(socket.assigns.current_user, params)
     [item] = EquipmentOwnerships.equipment_search(%{"serial_number" => params["serial_number"]}, socket.assigns.current_user)
     stream_insert(socket, :data, Map.put(item, :selected, false))
@@ -260,7 +260,7 @@ defmodule EhsWebappWeb.EquipmentSearchLive do
   defp delete_ownership(socket) do
     selected = EquipmentOwnerships.get_equipment_ownership!(socket.assigns.selection[:id])
     select = socket.assigns.selection
-      |> Map.take([:id, :equipment, :serial_number, :client, :current_owner])
+      |> Map.take([:id, :equipment, :serial_number, :client, :current_owner, :next_inspection_date])
       |> Map.put(:selected, true)
     case EquipmentOwnerships.delete_equipment_ownership(socket.assigns.current_user, selected) do
       {:ok, ownership} -> socket 
