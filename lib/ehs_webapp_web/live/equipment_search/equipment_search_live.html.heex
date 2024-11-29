@@ -7,6 +7,7 @@
           <.input type="text" class="search_input" phx-debounce="blur" label="Equipment" name="equipment" field={@search_form[:equipment]} />
           <.live_component module={EhsWebappWeb.CategorySelectComponent} id="category_select" parent_form={@search_form} />
           <.input type="text" class="search_input" phx-debounce="blur" label="Brand" name="brand" field={@search_form[:brand]}/>
+          <.input type="date" class="search_input" phx-debounce="blur" label="Next Inspection Date" name="next_inspection_date" field={@search_form[:next_inspection_date]}/>
           <.input type="text" class="search_input" phx-debounce="blur" label="Part No." name="part_number" field={@search_form[:part_number]}/>
           <.input type="text" class="search_input" phx-debounce="blur" label="Batch No." name="batch_number" field={@search_form[:batch_number]}/>
           <.input type="text" class="search_input" phx-debounce="blur" label="Serial No." name="serial_number" field={@search_form[:serial_number]}/>
@@ -41,7 +42,7 @@
           Next Inspection Date
         </div>
       </div>
-      <div id="data-display" class="w-full" phx-update="stream">
+      <div id="data-display" class="w-full overflow-scroll" style="height: 800px" phx-update="stream">
         <%= for {dom_id, item} <- @streams.data do %>
           <div 
             class={["flex justify-between w-full border-b", item.selected && "bg-ccBlue text-white"]}
