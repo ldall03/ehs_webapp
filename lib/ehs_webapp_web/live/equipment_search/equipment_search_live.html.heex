@@ -22,6 +22,11 @@
         <div class="px-10">
           <.button type="submit" class="w-full my-5">Search</.button>
         </div>
+        <%= if @current_user.admin do %>
+          <div class="px-10">
+            <.button type="button" phx-click="showall" class="w-full mb-5">Show All</.button>
+          </div>
+        <% end %>
       </.form>
       <div class="px-10">
         <.button type="button" class="w-full mb-5" phx-click="clear">Clear</.button>
@@ -30,7 +35,16 @@
     <div class="w-full">
       <div class="flex justify-between w-full border-b border-ccGrey">
         <div class="text-lg m-5 w-1/3 flex justify-center">
-          Equipment
+          Equipment (
+          <%= if @show_overdue do %>
+            <%= length Enum.filter(@data, fn item -> item.next_inspection_date && Date.compare(Date.utc_today(), item.next_inspection_date) == :gt end) %>
+          <% else %>
+            <%= length @data %>
+          <% end %>
+          )
+          <div class="m-2">
+            <.input type="checkbox" phx-click="toggle_order_by_name" name="next_inspection_date_filter" value="" title="Order by name"/>
+          </div>
         </div>
         <div class="text-lg m-5 w-1/3 flex justify-center">
           Serial No.
@@ -38,8 +52,16 @@
         <div class="text-lg m-5 w-1/3 flex justify-center">
           <%= if @current_user.admin, do: "Client", else: "Current Owner" %>
         </div>
+        <%= if not @current_user.admin do %>
+          <div class="text-lg m-5 w-1/3 flex justify-center">
+            Department 
+          </div>
+        <% end %>
         <div class="text-lg m-5 w-1/3 flex justify-center">
           Next Inspection Date
+          <div class="m-2">
+            <.input type="checkbox" phx-click="toggle_show_overdue" name="next_inspection_date_filter" value="" title="Only show overdue equipment"/>
+          </div>
         </div>
       </div>
       <div id="data-display" class="w-full overflow-scroll" style="height: 800px" phx-update="stream">
@@ -54,8 +76,13 @@
               <%= item.serial_number %>
             </div>
             <div class="m-5 w-1/3 flex justify-center">
-          <%= if @current_user.admin, do: item.client, else: item.current_owner %>
+              <%= if @current_user.admin, do: item.client, else: item.current_owner %>
             </div>
+            <%= if not @current_user.admin do %>
+              <div class="m-5 w-1/3 flex justify-center">
+                <%= item.department %>
+              </div>
+            <% end %>
             <div class={["m-5 w-1/3 flex justify-center", (item.next_inspection_date && Date.compare(Date.utc_today(), item.next_inspection_date) == :lt) || "text-ccRed"]}>
               <%= item.next_inspection_date %>
             </div>
@@ -70,7 +97,7 @@
         <.form id="ownerships-form" for={@ownerships_form} phx-change="validate" phx-submit={JS.push("ownership_submit") |> toggle_forms(@current_user)} class="flex w-full">
           <table class="w-full h-96">
             <tr>
-              <td class="w-1/4"> <p class="font-bold ml-4 my-6">Equipment:</p> </td>
+          <td class="w-1/4"> <p class="font-bold ml-4 my-6">Equipment:</p> </td>
               <td class="w-1/4"> 
                 <.select_input :if={@current_user.admin} id="equipment_select" class="toggleable h-8 hidden" name="equipment_id" field={@ownerships_form[:equipment_id]} placeholder="Equipment" required={true} 
                   options={@equipments |> Enum.map(fn i -> {i.equipment, i.id} end) |> Enum.uniq()}
@@ -247,7 +274,7 @@
       </div>
       <div class="flex justify-between">
         <div class="flex flex-col w-3/5">
-          <div class="font-bold text-lg ml-8 mt-6 mb-4">Technical Reports:</div>
+          <div class="font-bold text-lg ml-8 mt-6 mb-4">Maintenance Reports:</div>
           <div id="tech_reports" phx-update="stream" class="h-64 overflow-scroll flex flex-col">
             <%= for {dom_id, report} <- @streams.tech_reports do %>
               <.link id={dom_id} href={report.url} target="_blank" class="text-ccBlue p-2 ml-10 text-lg hover:underline"><%= Path.basename(report.display_name) %></.link>

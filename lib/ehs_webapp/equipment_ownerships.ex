@@ -210,6 +210,7 @@ defmodule EhsWebapp.EquipmentOwnerships do
         o.serial_number, 
         com.company_name,
         o.current_owner,
+        o.department,
         o.next_inspection_date])
       |> order_by([eq], eq.equipment)
 
@@ -221,7 +222,8 @@ defmodule EhsWebapp.EquipmentOwnerships do
           :serial_number        => Enum.at(item, 2), 
           :client               => Enum.at(item, 3),
           :current_owner        => Enum.at(item, 4),
-          :next_inspection_date => Enum.at(item, 5)
+          :department           => Enum.at(item, 5),
+          :next_inspection_date => Enum.at(item, 6)
         } end)   
   end
 

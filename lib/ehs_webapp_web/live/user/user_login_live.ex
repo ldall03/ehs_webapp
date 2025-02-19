@@ -31,7 +31,6 @@ defmodule EhsWebappWeb.UserLoginLive do
         <hr class="mt-4 w-80">
         <div class="h-96"></div>
         <div class="h-12"></div>
-        <p class="text-white absolute bottom-1 right-4">An IHI LTD &copy 2024 IHI LTD. All rights reserved</p>
       </div>
     </div>
     """

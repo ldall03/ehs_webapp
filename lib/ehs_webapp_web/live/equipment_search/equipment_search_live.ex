@@ -54,6 +54,9 @@ defmodule EhsWebappWeb.EquipmentSearchLive do
       socket
       |> assign(search_form: to_form(%{"empty" => nil}),
         ownerships_form: to_form(EquipmentOwnerships.change_equipment_ownership(%EquipmentOwnership{})),
+        data: [],
+        show_overdue: false,
+        order_by_name: false,
         selection: EquipmentOwnerships.equipment_search_by(nil),
         submit_action: "update",
         next_inspection_date_changed: false,
@@ -69,20 +72,94 @@ defmodule EhsWebappWeb.EquipmentSearchLive do
   end
 
   def handle_event("search", params, socket) do
-    data = EquipmentOwnerships.equipment_search(params, socket.assigns.current_user)
+    data = EquipmentOwnerships.equipment_search(params, socket.assigns.current_user) 
       |> Enum.map(fn item -> Map.put(item, :selected, false) end)
+    data = socket.assigns.data ++ data
+      |> Enum.uniq_by(&(&1.id))
+      |> Enum.map(&(Map.replace(&1, :selected, &1.id == socket.assigns.selection.id)))
+
+    ordered_data = 
+      if socket.assigns.order_by_name do
+        Enum.sort(data, fn a, b -> String.downcase(a.equipment) <= String.downcase(b.equipment) end)
+      else
+        data 
+      end
+
+    stream_data = 
+      if socket.assigns.show_overdue do 
+        Enum.filter(ordered_data, fn item -> item.next_inspection_date && Date.compare(Date.utc_today(), item.next_inspection_date) == :gt end) 
+      else 
+        ordered_data 
+      end
+
+    send_update(EhsWebappWeb.CategorySelectComponent, id: "category_select", parent_form: to_form(%{})) # clear category_select
+
+    case stream_data do
+      [] -> {:noreply, 
+              socket
+              |> put_flash(:error, "Search result came back empty.")
+              |> assign(search_form: to_form(%{}))
+            }
+      _  -> {:noreply, 
+              socket
+              |> stream(:data, stream_data, reset: true)
+              |> assign(search_form: to_form(%{}), data: data)
+            }
+    end
+  end
+
+  def handle_event("search_change", params, socket) do
+    {:noreply, assign(socket, search_form: to_form(params))}
+  end
+
+  def handle_event("showall", _params, socket) do
+    data = EquipmentOwnerships.equipment_search(%{}, socket.assigns.current_user) 
+      |> Enum.map(fn item -> Map.put(item, :selected, false) end)
+
+    stream_data = 
+      if socket.assigns.show_overdue do 
+        Enum.filter(data, fn item -> item.next_inspection_date && Date.compare(Date.utc_today(), item.next_inspection_date) == :gt end) 
+      else 
+        data 
+      end
 
     send_update(EhsWebappWeb.CategorySelectComponent, id: "category_select", parent_form: to_form(%{})) # clear category_select
 
     {:noreply, 
       socket
-      |> stream(:data, data)
-      |> assign(search_form: to_form(%{}))
+      |> stream(:data, stream_data, reset: true)
+      |> assign(search_form: to_form(%{}), data: data)
     }
   end
 
-  def handle_event("search_change", params, socket) do
-    {:noreply, assign(socket, search_form: to_form(params))}
+  def handle_event("toggle_order_by_name", _params, socket) do
+    ordered_data = 
+      if socket.assigns.order_by_name do
+        socket.assigns.data 
+      else
+        Enum.sort(socket.assigns.data, fn a, b -> String.downcase(a.equipment) <= String.downcase(b.equipment) end)
+      end
+    
+    {:noreply, 
+      socket
+      |> assign(:order_by_name, not socket.assigns.order_by_name)
+      |> stream(:data, ordered_data, reset: true)
+    }
+  end
+
+  def handle_event("toggle_show_overdue", _params, socket) do
+    stream_data = 
+      if socket.assigns.show_overdue do 
+        socket.assigns.data 
+      else 
+        Enum.filter(socket.assigns.data, fn item -> item.next_inspection_date && Date.compare(Date.utc_today(), item.next_inspection_date) == :gt end) 
+      end
+
+    {:noreply, 
+      socket
+      |> assign(:show_overdue, not socket.assigns.show_overdue)
+      |> stream(:data, stream_data, reset: true)
+    }
   end
 
   def handle_event("clear", _params, socket) do
@@ -96,6 +173,7 @@ defmodule EhsWebappWeb.EquipmentSearchLive do
       |> stream(:calibrations, [], reset: true)
       |> stream(:tech_reports, [], reset: true)
       |> assign(selection: selection, search_form: to_form(%{}))
+      |> assign(data: [])
     }
   end
 
@@ -105,18 +183,33 @@ defmodule EhsWebappWeb.EquipmentSearchLive do
     else
       selection = EquipmentOwnerships.equipment_search_by(params["item_id"])
       deselect = socket.assigns.selection
-        |> Map.take([:id, :equipment, :serial_number, :client, :current_owner, :next_inspection_date])
+        |> Map.take([:id, :equipment, :serial_number, :client, :current_owner, :department, :next_inspection_date])
         |> Map.put(:selected, false)
       select = selection
-        |> Map.take([:id, :equipment, :serial_number, :client, :current_owner, :next_inspection_date])
+        |> Map.take([:id, :equipment, :serial_number, :client, :current_owner, :department, :next_inspection_date])
         |> Map.put(:selected, true)
+
+      data = Enum.map(socket.assigns.data, &(Map.replace(&1, :selected, &1.id == select.id)))
+      ordered_data = 
+        if socket.assigns.order_by_name do
+          Enum.sort(data, fn a, b -> String.downcase(a.equipment) <= String.downcase(b.equipment) end)
+        else
+          data 
+        end
+      stream_data = 
+        if socket.assigns.show_overdue do 
+          Enum.filter(ordered_data, fn item -> item.next_inspection_date && Date.compare(Date.utc_today(), item.next_inspection_date) == :gt end) 
+        else 
+          ordered_data 
+        end
 
       {:noreply, 
         socket
         |> stream(:calibrations, EquipmentOwnerships.list_calibrations_by(selection.id), reset: true)
         |> stream(:tech_reports, EquipmentOwnerships.list_technical_reports_by(selection.id), reset: true)
-        |> stream(:data, if(deselect.id != "", do: [deselect, select], else: [select]))
+        |> stream(:data, stream_data, reset: true)
         |> assign(selection: selection)
+        |> assign(data: data)
       }
     end
   end
@@ -222,7 +315,7 @@ defmodule EhsWebappWeb.EquipmentSearchLive do
       {:ok, _} ->
         {:noreply, socket 
           |> stream(:tech_reports, EquipmentOwnerships.list_technical_reports_by(socket.assigns.selection.id), at: 0)
-          |> put_flash(:info, "Technical Report file uploaded.")
+          |> put_flash(:info, "Maintenance Report file uploaded.")
         }
       {:error, :unauthorized} -> {:noreply, :error, "You are not authorized to upload files for this equipment."}
       _                       -> {:noreply, put_flash(socket, :error, "Something went wrong")}
@@ -239,22 +332,34 @@ defmodule EhsWebappWeb.EquipmentSearchLive do
 
   defp update_ownership(params, socket) do
     selected = EquipmentOwnerships.get_equipment_ownership!(socket.assigns.selection[:id])
-    EquipmentOwnerships.update_equipment_ownership(selected, socket.assigns.current_user, params)
+    {status, changeset} = EquipmentOwnerships.update_equipment_ownership(selected, socket.assigns.current_user, params)
 
     selection = EquipmentOwnerships.equipment_search_by(socket.assigns.selection[:id])
     select = selection
       |> Map.take([:id, :equipment, :serial_number, :client, :current_owner, :next_inspection_date])
       |> Map.put(:selected, true)
 
-    socket
-    |> assign(selection: selection)
-    |> stream_insert(:data, select)
+    case status do 
+      :error  -> Map.to_list(Ecto.Changeset.traverse_errors(changeset, fn {msg, opt} -> msg end))
+        |> Enum.reduce(socket, fn {field, [msg | rest]}, acc -> put_flash(acc, :error, to_string(field) <> " " <> msg) end)
+      _       -> socket
+        |> assign(selection: selection)
+        |> assign(data: Enum.map(socket.assigns.data, &(if &1.id == select.id do select else &1 end)))
+        |> stream_insert(:data, select)
+    end
   end
 
   defp create_ownership(params, socket) do # TODO: refactor using return of create_equipment_ownership
-    EquipmentOwnerships.create_equipment_ownership(socket.assigns.current_user, params)
+    {status, changeset} = EquipmentOwnerships.create_equipment_ownership(socket.assigns.current_user, params)
     [item] = EquipmentOwnerships.equipment_search(%{"serial_number" => params["serial_number"]}, socket.assigns.current_user)
-    stream_insert(socket, :data, Map.put(item, :selected, false))
+
+    case status do
+      :error  -> Map.to_list(Ecto.Changeset.traverse_errors(changeset, fn {msg, opt} -> msg end))
+        |> Enum.reduce(socket, fn {field, [msg | rest]}, acc -> put_flash(acc, :error, to_string(field) <> " " <> msg) end)
+      _       -> socket
+        |> assign(data: socket.assigns.data ++ [Map.put(item, :selected, false)])
+        |> stream_insert(:data, Map.put(item, :selected, false))
+    end
   end
 
   defp delete_ownership(socket) do
@@ -265,6 +370,7 @@ defmodule EhsWebappWeb.EquipmentSearchLive do
     case EquipmentOwnerships.delete_equipment_ownership(socket.assigns.current_user, selected) do
       {:ok, ownership} -> socket 
         |> assign(selection: EquipmentOwnerships.equipment_search_by(nil))
+        |> assign(data: Enum.filter(socket.assigns.data, &(&1.id != select.id)))
         |> stream_delete(:data, select)
       {:error, :unauthorized} -> socket |> put_flash(:error, "You do not have the permission to perform this action")
     end
