@@ -57,6 +57,7 @@ defmodule EhsWebappWeb.EquipmentSearchLive do
         data: [],
         show_overdue: false,
         order_by_name: false,
+        order_by: :equipment,
         selection: EquipmentOwnerships.equipment_search_by(nil),
         submit_action: "update",
         next_inspection_date_changed: false,
@@ -78,12 +79,7 @@ defmodule EhsWebappWeb.EquipmentSearchLive do
       |> Enum.uniq_by(&(&1.id))
       |> Enum.map(&(Map.replace(&1, :selected, &1.id == socket.assigns.selection.id)))
 
-    ordered_data = 
-      if socket.assigns.order_by_name do
-        Enum.sort(data, fn a, b -> String.downcase(a.equipment) <= String.downcase(b.equipment) end)
-      else
-        data 
-      end
+    ordered_data = order_data(data, socket.assigns.order_by)
 
     stream_data = 
       if socket.assigns.show_overdue do 
@@ -103,7 +99,7 @@ defmodule EhsWebappWeb.EquipmentSearchLive do
       _  -> {:noreply, 
               socket
               |> stream(:data, stream_data, reset: true)
-              |> assign(search_form: to_form(%{}), data: data)
+              |> assign(search_form: to_form(%{}), data: ordered_data)
             }
     end
   end
@@ -116,11 +112,13 @@ defmodule EhsWebappWeb.EquipmentSearchLive do
     data = EquipmentOwnerships.equipment_search(%{}, socket.assigns.current_user) 
       |> Enum.map(fn item -> Map.put(item, :selected, false) end)
 
+    ordered_data = order_data(data, socket.assigns.order_by)
+
     stream_data = 
       if socket.assigns.show_overdue do 
-        Enum.filter(data, fn item -> item.next_inspection_date && Date.compare(Date.utc_today(), item.next_inspection_date) == :gt end) 
+        Enum.filter(ordered_data, fn item -> item.next_inspection_date && Date.compare(Date.utc_today(), item.next_inspection_date) == :gt end) 
       else 
-        data 
+        ordered_data 
       end
 
     send_update(EhsWebappWeb.CategorySelectComponent, id: "category_select", parent_form: to_form(%{})) # clear category_select
@@ -128,22 +126,29 @@ defmodule EhsWebappWeb.EquipmentSearchLive do
     {:noreply, 
       socket
       |> stream(:data, stream_data, reset: true)
-      |> assign(search_form: to_form(%{}), data: data)
+      |> assign(search_form: to_form(%{}), data: ordered_data)
     }
   end
 
-  def handle_event("toggle_order_by_name", _params, socket) do
+  def handle_event("change_order_by", %{"order_by" => type}, socket) do
     ordered_data = 
-      if socket.assigns.order_by_name do
-        socket.assigns.data 
+      if socket.assigns.order_by == String.to_atom(type) do
+        Enum.reverse(socket.assigns.data)
       else
-        Enum.sort(socket.assigns.data, fn a, b -> String.downcase(a.equipment) <= String.downcase(b.equipment) end)
+        order_data(socket.assigns.data, String.to_atom(type))
       end
-    
+
+    stream_data = 
+      if socket.assigns.show_overdue do 
+        Enum.filter(ordered_data, fn item -> item.next_inspection_date && Date.compare(Date.utc_today(), item.next_inspection_date) == :gt end) 
+      else 
+        ordered_data 
+      end
+
     {:noreply, 
       socket
-      |> assign(:order_by_name, not socket.assigns.order_by_name)
-      |> stream(:data, ordered_data, reset: true)
+      |> assign(data: ordered_data, order_by: String.to_atom(type))
+      |> stream(:data, stream_data, reset: true)
     }
   end
 
@@ -173,7 +178,7 @@ defmodule EhsWebappWeb.EquipmentSearchLive do
       |> stream(:calibrations, [], reset: true)
       |> stream(:tech_reports, [], reset: true)
       |> assign(selection: selection, search_form: to_form(%{}))
-      |> assign(data: [])
+      |> assign(data: [], order_by: :equipment)
     }
   end
 
@@ -190,12 +195,7 @@ defmodule EhsWebappWeb.EquipmentSearchLive do
         |> Map.put(:selected, true)
 
       data = Enum.map(socket.assigns.data, &(Map.replace(&1, :selected, &1.id == select.id)))
-      ordered_data = 
-        if socket.assigns.order_by_name do
-          Enum.sort(data, fn a, b -> String.downcase(a.equipment) <= String.downcase(b.equipment) end)
-        else
-          data 
-        end
+      ordered_data = order_data(data, socket.assigns.order_by)
       stream_data = 
         if socket.assigns.show_overdue do 
           Enum.filter(ordered_data, fn item -> item.next_inspection_date && Date.compare(Date.utc_today(), item.next_inspection_date) == :gt end) 
@@ -208,8 +208,7 @@ defmodule EhsWebappWeb.EquipmentSearchLive do
         |> stream(:calibrations, EquipmentOwnerships.list_calibrations_by(selection.id), reset: true)
         |> stream(:tech_reports, EquipmentOwnerships.list_technical_reports_by(selection.id), reset: true)
         |> stream(:data, stream_data, reset: true)
-        |> assign(selection: selection)
-        |> assign(data: data)
+        |> assign(selection: selection, data: ordered_data)
       }
     end
   end
@@ -219,8 +218,7 @@ defmodule EhsWebappWeb.EquipmentSearchLive do
   end
 
   def handle_event("select_btn_click", params, socket) do
-    socket = 
-      cond do 
+    socket = cond do 
       params["value"] == "update" -> assign(socket,
         selected_brand: socket.assigns.selection.brand, 
         ownerships_form: EquipmentOwnerships.get_equipment_ownership!(socket.assigns.selection[:id])
@@ -236,7 +234,7 @@ defmodule EhsWebappWeb.EquipmentSearchLive do
           selected_equipment_name: "",
           ownerships_form: to_form(EquipmentOwnerships.change_equipment_ownership(%EquipmentOwnership{})))
         true -> socket
-      end
+    end
 
     {:noreply, assign(socket, next_inspection_date_changed: false)}
   end
@@ -412,5 +410,28 @@ defmodule EhsWebappWeb.EquipmentSearchLive do
 
   defp presign_upload(entry, %{assigns: %{uploads: uploads}} = socket) do
     {:ok, SimpleS3Upload.meta(entry, uploads), socket}
+  end
+
+  defp cmp_dates(d1, d2) do
+    d1 = if d1, do: d1, else: false
+    d2 = if d2, do: d2, else: false
+
+    if d1 && d2 do 
+      Date.compare(d2, d1) == :gt
+    else
+      d1 && !d2
+    end
+  end
+
+  defp order_data(data, by) do
+    case by do
+      :equipment            -> Enum.sort(data, &(String.downcase(&1.equipment) <= String.downcase(&2.equipment)))
+      :serial_number        -> Enum.sort(data, &(String.downcase(&1.serial_number) <= String.downcase(&2.serial_number)))
+      :client               -> Enum.sort(data, &(String.downcase(&1.client) <= String.downcase(&2.client)))
+      :next_inspection_date -> Enum.sort(data, &(cmp_dates(&1.next_inspection_date, &2.next_inspection_date)))
+      :current_owner        -> Enum.sort(data, &(String.downcase(&1.current_owner) <= String.downcase(&2.current_owner)))
+      :department           -> Enum.sort(data, &(String.downcase(&1.department) <= String.downcase(&2.department)))
+      _                     -> data
+    end
   end
 end

@@ -7,7 +7,6 @@
           <.input type="text" class="search_input" phx-debounce="blur" label="Equipment" name="equipment" field={@search_form[:equipment]} />
           <.live_component module={EhsWebappWeb.CategorySelectComponent} id="category_select" parent_form={@search_form} />
           <.input type="text" class="search_input" phx-debounce="blur" label="Brand" name="brand" field={@search_form[:brand]}/>
-          <.input type="date" class="search_input" phx-debounce="blur" label="Next Inspection Date" name="next_inspection_date" field={@search_form[:next_inspection_date]}/>
           <.input type="text" class="search_input" phx-debounce="blur" label="Part No." name="part_number" field={@search_form[:part_number]}/>
           <.input type="text" class="search_input" phx-debounce="blur" label="Batch No." name="batch_number" field={@search_form[:batch_number]}/>
           <.input type="text" class="search_input" phx-debounce="blur" label="Serial No." name="serial_number" field={@search_form[:serial_number]}/>
@@ -34,7 +33,7 @@
     </div>
     <div class="w-full">
       <div class="flex justify-between w-full border-b border-ccGrey">
-        <div class="text-lg m-5 w-1/3 flex justify-center">
+        <div class="text-lg m-5 w-1/3 flex justify-center cursor-pointer" phx-click="change_order_by" phx-value-order_by="equipment" cur1>
           Equipment (
           <%= if @show_overdue do %>
             <%= length Enum.filter(@data, fn item -> item.next_inspection_date && Date.compare(Date.utc_today(), item.next_inspection_date) == :gt end) %>
@@ -42,22 +41,19 @@
             <%= length @data %>
           <% end %>
           )
-          <div class="m-2">
-            <.input type="checkbox" phx-click="toggle_order_by_name" name="next_inspection_date_filter" value="" title="Order by name"/>
-          </div>
         </div>
-        <div class="text-lg m-5 w-1/3 flex justify-center">
+        <div class="text-lg m-5 w-1/3 flex justify-center cursor-pointer" phx-click="change_order_by" phx-value-order_by="serial_number">
           Serial No.
         </div>
-        <div class="text-lg m-5 w-1/3 flex justify-center">
+        <div class="text-lg m-5 w-1/3 flex justify-center cursor-pointer" phx-click="change_order_by" phx-value-order_by={if @current_user.admin, do: "client", else: "current_owner"}>
           <%= if @current_user.admin, do: "Client", else: "Current Owner" %>
         </div>
         <%= if not @current_user.admin do %>
-          <div class="text-lg m-5 w-1/3 flex justify-center">
+          <div class="text-lg m-5 w-1/3 flex justify-center cursor-pointer" phx-click="change_order_by" phx-value-order_by="department">
             Department 
           </div>
         <% end %>
-        <div class="text-lg m-5 w-1/3 flex justify-center">
+        <div class="text-lg m-5 w-1/3 flex justify-center cursor-pointer" phx-click="change_order_by" phx-value-order_by="next_inspection_date">
           Next Inspection Date
           <div class="m-2">
             <.input type="checkbox" phx-click="toggle_show_overdue" name="next_inspection_date_filter" value="" title="Only show overdue equipment"/>

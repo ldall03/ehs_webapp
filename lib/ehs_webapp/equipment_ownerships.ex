@@ -137,7 +137,6 @@ defmodule EhsWebapp.EquipmentOwnerships do
     "category_id"           => "",
     "subcategory_id"        => "",
     "brand"                 => "",
-    "next_inspection_date"  => "",
     "part_number"           => "",
     "batch_number"          => "",
     "serial_number"         => "",
@@ -151,7 +150,6 @@ defmodule EhsWebapp.EquipmentOwnerships do
     "category_id"           => "",
     "subcategory_id"        => "",
     "brand"                 => "",
-    "next_inspection_date"  => "",
     "part_number"           => "",
     "batch_number"          => "",
     "serial_number"         => "",
@@ -183,8 +181,6 @@ defmodule EhsWebapp.EquipmentOwnerships do
       |> where([eq, sub], sub.id == ^params["subcategory_id"]), else: query
     query = if cmp_or_nil(params["brand"]), do: query
       |> where([eq], like(fragment("lower(?)", eq.brand), ^brand_pattern)), else: query
-    query = if cmp_or_nil(params["next_inspection_date"]), do: query
-      |> where([eq, sub, cat, o], o.next_inspection_date == ^params["next_inspection_date"]), else: query
     query = if cmp_or_nil(params["part_number"]), do: query
       |> where([eq, sub, cat, o], o.part_number == ^params["part_number"]), else: query
     query = if cmp_or_nil(params["batch_number"]), do: query
