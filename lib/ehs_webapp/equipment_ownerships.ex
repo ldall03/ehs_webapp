@@ -82,7 +82,7 @@ defmodule EhsWebapp.EquipmentOwnerships do
   def update_equipment_ownership(%EquipmentOwnership{} = equipment_ownership, %User{} = user, attrs) do
     if user.admin or user.client_company_id == equipment_ownership.client_company_id do
       next_inspection_date = case Date.from_iso8601(attrs["last_inspection_date"]) do
-        {:ok, date} -> Date.to_iso8601(Date.add(date, 30 * equipment_ownership.inspection_interval))
+        {:ok, date} -> Date.to_iso8601(Date.add(date, 30 * String.to_integer(attrs["inspection_interval"])))
         {:error, _e} -> equipment_ownership.next_inspection_date
       end
 
